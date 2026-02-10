@@ -1,0 +1,66 @@
+# =============================================================================
+# Meilisearch StatefulSet
+# =============================================================================
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orgmind-meilisearch
+  namespace: orgmind-staging
+spec:
+  serviceName: orgmind-meilisearch
+  replicas: 1
+  selector:
+    matchLabels:
+      app: meilisearch
+  template:
+    metadata:
+      labels:
+        app: meilisearch
+    spec:
+      containers:
+      - name: meilisearch
+        image: getmeili/meilisearch:v1.6
+        ports:
+        - containerPort: 7700
+          name: http
+        env:
+        - name: MEILI_MASTER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: orgmind-secrets
+              key: MEILISEARCH_API_KEY
+        - name: MEILI_ENV
+          value: "production"
+        volumeMounts:
+        - name: meilisearch-data
+          mountPath: /meili_data
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+  volumeClaimTemplates:
+  - metadata:
+      name: meilisearch-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 20Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orgmind-meilisearch
+  namespace: orgmind-staging
+spec:
+  type: ClusterIP
+  selector:
+    app: meilisearch
+  ports:
+  - name: http
+    port: 7700
+    targetPort: 7700

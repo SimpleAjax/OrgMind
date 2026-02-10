@@ -1,0 +1,59 @@
+# =============================================================================
+# ConfigMap - Environment Variables
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orgmind-config
+  namespace: orgmind-staging
+data:
+  APP_ENV: "staging"
+  DEBUG: "false"
+  LOG_LEVEL: "info"
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  CORS_ORIGINS: "https://staging.orgmind.io"
+  
+  # DuckDB
+  DUCKDB_PATH: "/data/orgmind.duckdb"
+  DUCKDB_THREADS: "4"
+  
+  # Redis
+  REDIS_URL: "redis://orgmind-redis:6379"
+  REDIS_MAX_CONNECTIONS: "20"
+  
+  # Neo4j
+  NEO4J_URI: "bolt://orgmind-neo4j:7687"
+  NEO4J_USER: "neo4j"
+  NEO4J_DATABASE: "neo4j"
+  
+  # Qdrant
+  QDRANT_HOST: "orgmind-qdrant"
+  QDRANT_PORT: "6333"
+  QDRANT_GRPC_PORT: "6334"
+  
+  # Meilisearch
+  MEILISEARCH_HOST: "http://orgmind-meilisearch:7700"
+  
+  # MinIO
+  MINIO_ENDPOINT: "orgmind-minio:9000"
+  MINIO_SECURE: "false"
+  MINIO_BUCKET: "orgmind-files"
+  
+  # Temporal
+  TEMPORAL_HOST: "orgmind-temporal:7233"
+  TEMPORAL_NAMESPACE: "default"
+  TEMPORAL_TASK_QUEUE: "orgmind-workflows"
+  
+  # OpenAI
+  OPENAI_MODEL: "gpt-4o"
+  OPENAI_EMBEDDING_MODEL: "text-embedding-3-small"
+  
+  # Observability
+  OTEL_SERVICE_NAME: "orgmind-staging"
+  METRICS_ENABLED: "true"
+  
+  # Feature Flags
+  FEATURE_AGENT_ENABLED: "true"
+  FEATURE_WORKFLOW_ENABLED: "true"
+  FEATURE_DECISION_TRACE_ENABLED: "true"

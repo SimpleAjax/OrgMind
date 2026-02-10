@@ -1,0 +1,26 @@
+# =============================================================================
+# Kustomization for Staging Environment (Base)
+#
+# This is also used as the base for local overlays.
+# Usage: kubectl apply -k k8s/staging
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: orgmind-staging
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.yaml
+  - pvc.yaml
+  - api-deployment.yaml
+  - worker-deployment.yaml
+  - indexer-deployment.yaml
+  - ingress.yaml
+  - redis.yaml
+  - neo4j.yaml
+  - qdrant.yaml
+  - meilisearch.yaml
+  - minio.yaml
+  - temporal.yaml

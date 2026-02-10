@@ -1,0 +1,224 @@
+# =============================================================================
+# Kustomization for Local Environment (k3d)
+#
+# Overlays the staging base with local-specific changes:
+#   - Uses locally-built Docker image (orgmind:local)
+#   - Sets imagePullPolicy to IfNotPresent
+#   - Changes Ingress host to localhost
+#   - Exposes Neo4j/MinIO as NodePort for local access
+#   - Overrides namespace to orgmind-local
+#
+# Usage: kubectl apply -k k8s/local
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Base resources from staging
+resources:
+  - ../staging
+ 
+# Override namespace for all resources
+namespace: orgmind-local
+
+# Override container images to use locally-built version
+images:
+  - name: ghcr.io/your-org/orgmind
+    newName: orgmind
+    newTag: local
+
+# Strategic merge patches for local overrides
+patches:
+  # ── API Deployment: local image + pull policy ──
+  - target:
+      kind: Deployment
+      name: orgmind-api
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: orgmind-api
+      spec:
+        replicas: 1
+        template:
+          spec:
+            containers:
+            - name: api
+              image: orgmind:local
+              imagePullPolicy: IfNotPresent
+
+  # ── Worker Deployment: local image + pull policy ──
+  - target:
+      kind: Deployment
+      name: orgmind-worker
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: orgmind-worker
+      spec:
+        replicas: 1
+        template:
+          spec:
+            containers:
+            - name: worker
+              image: orgmind:local
+              imagePullPolicy: IfNotPresent
+
+  # ── Indexer Deployment: local image + pull policy ──
+  - target:
+      kind: Deployment
+      name: orgmind-indexer
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: orgmind-indexer
+      spec:
+        replicas: 1
+        template:
+          spec:
+            containers:
+            - name: indexer
+              image: orgmind:local
+              imagePullPolicy: IfNotPresent
+
+  # ── ConfigMap: local environment settings ──
+  - target:
+      kind: ConfigMap
+      name: orgmind-config
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: orgmind-config
+      data:
+        APP_ENV: "local"
+        DEBUG: "true"
+        LOG_LEVEL: "debug"
+        CORS_ORIGINS: "http://localhost:8080,http://localhost:3000"
+
+  # ── Ingress: localhost, no TLS ──
+  - target:
+      kind: Ingress
+      name: orgmind-ingress
+    patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: orgmind-ingress
+        annotations:
+          nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      spec:
+        tls: []
+        rules:
+        - host: localhost
+          http:
+            paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: orgmind-api
+                  port:
+                    number: 8000
+
+  # ── Neo4j Service: expose as NodePort for local browser access ──
+  - target:
+      kind: Service
+      name: orgmind-neo4j
+    patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: orgmind-neo4j
+      spec:
+        type: NodePort
+        ports:
+        - name: http
+          port: 7474
+          targetPort: 7474
+          nodePort: 30474
+        - name: bolt
+          port: 7687
+          targetPort: 7687
+
+  # ── MinIO Service: expose console as NodePort ──
+  - target:
+      kind: Service
+      name: orgmind-minio
+    patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: orgmind-minio
+      spec:
+        type: NodePort
+        ports:
+        - name: api
+          port: 9000
+          targetPort: 9000
+        - name: console
+          port: 9001
+          targetPort: 9001
+          nodePort: 30091
+
+  # ── Namespace: override to orgmind-local ──
+  - target:
+      kind: Namespace
+      name: orgmind-staging
+    patch: |-
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: orgmind-local
+        labels:
+          environment: local
+          app: orgmind
+
+  # ── PVC: use local-path storage class (k3d) and ReadWriteOnce ──
+  - target:
+      kind: PersistentVolumeClaim
+      name: orgmind-data-pvc
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: orgmind-data-pvc
+      spec:
+        accessModes:
+        - ReadWriteOnce  # local-path only supports RWO
+        resources:
+          requests:
+            storage: 10Gi  # Smaller size for local dev
+        storageClassName: local-path  # k3d's default storage class
+
+  # ── Disable HPAs locally (no point auto-scaling on dev machine) ──
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: orgmind-api-hpa
+    patch: |-
+      $patch: delete
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: orgmind-api-hpa
+
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: orgmind-worker-hpa
+    patch: |-
+      $patch: delete
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: orgmind-worker-hpa
+
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: orgmind-indexer-hpa
+    patch: |-
+      $patch: delete
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: orgmind-indexer-hpa

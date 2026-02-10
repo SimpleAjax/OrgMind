@@ -1,0 +1,75 @@
+# =============================================================================
+# MinIO StatefulSet
+# =============================================================================
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orgmind-minio
+  namespace: orgmind-staging
+spec:
+  serviceName: orgmind-minio
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - name: minio
+        image: minio/minio:latest
+        ports:
+        - containerPort: 9000
+          name: api
+        - containerPort: 9001
+          name: console
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: orgmind-secrets
+              key: MINIO_ACCESS_KEY
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: orgmind-secrets
+              key: MINIO_SECRET_KEY
+        command: ["minio", "server", "/data", "--console-address", ":9001"]
+        volumeMounts:
+        - name: minio-data
+          mountPath: /data
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+  volumeClaimTemplates:
+  - metadata:
+      name: minio-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 100Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orgmind-minio
+  namespace: orgmind-staging
+spec:
+  type: ClusterIP
+  selector:
+    app: minio
+  ports:
+  - name: api
+    port: 9000
+    targetPort: 9000
+  - name: console
+    port: 9001
+    targetPort: 9001

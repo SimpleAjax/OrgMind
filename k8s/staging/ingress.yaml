@@ -1,0 +1,39 @@
+# =============================================================================
+# Ingress (NGINX)
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: orgmind-ingress
+  namespace: orgmind-staging
+  annotations:
+    # NGINX specific annotations
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    
+    # Rate limiting
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    
+    # CORS
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://staging.orgmind.io"
+    
+    # SSL/TLS (Let's Encrypt)
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - staging-api.orgmind.io
+    secretName: orgmind-tls-cert
+  rules:
+  - host: staging-api.orgmind.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: orgmind-api
+            port:
+              number: 8000

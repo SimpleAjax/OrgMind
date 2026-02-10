@@ -1,0 +1,79 @@
+# =============================================================================
+# Neo4j StatefulSet
+# =============================================================================
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orgmind-neo4j
+  namespace: orgmind-staging
+spec:
+  serviceName: orgmind-neo4j
+  replicas: 1  # Use 3 for HA cluster
+  selector:
+    matchLabels:
+      app: neo4j
+  template:
+    metadata:
+      labels:
+        app: neo4j
+    spec:
+      containers:
+      - name: neo4j
+        image: neo4j:5-community
+        ports:
+        - containerPort: 7474
+          name: http
+        - containerPort: 7687
+          name: bolt
+        env:
+        - name: NEO4J_AUTH
+          value: "neo4j/orgmind_staging"
+        - name: NEO4J_PLUGINS
+          value: '["apoc"]'
+        - name: NEO4J_dbms_security_procedures_unrestricted
+          value: "apoc.*"
+        volumeMounts:
+        - name: neo4j-data
+          mountPath: /data
+        - name: neo4j-logs
+          mountPath: /logs
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+          limits:
+            cpu: 4000m
+            memory: 4Gi
+  volumeClaimTemplates:
+  - metadata:
+      name: neo4j-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 50Gi
+  - metadata:
+      name: neo4j-logs
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orgmind-neo4j
+  namespace: orgmind-staging
+spec:
+  type: ClusterIP
+  selector:
+    app: neo4j
+  ports:
+  - name: http
+    port: 7474
+    targetPort: 7474
+  - name: bolt
+    port: 7687
+    targetPort: 7687

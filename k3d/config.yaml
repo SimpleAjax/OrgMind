@@ -1,0 +1,37 @@
+# k3d configuration for OrgMind Local Dev
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: orgmind-local
+servers: 1
+agents: 1
+kubeAPI:
+  hostPort: "6443"
+# Let k3d pick the k3s image that matches its version (avoids version mismatch)
+# image: rancher/k3s:v1.27.4-k3s1
+ports:
+  # Map localhost:8080 to Ingress port 80
+  - port: 8080:80
+    nodeFilters:
+      - loadbalancer
+  # Map localhost:7474 to Neo4j NodePort (for browser access)
+  - port: 7474:30474
+    nodeFilters:
+      - agent:0
+  # Map localhost:9001 to MinIO Console NodePort
+  - port: 9001:30091
+    nodeFilters:
+      - agent:0
+options:
+  k3d:
+    wait: true
+    timeout: "120s"
+    disableLoadbalancer: false
+  k3s:
+    extraArgs:
+      - arg: --disable=traefik
+        nodeFilters:
+          - server:*
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: true

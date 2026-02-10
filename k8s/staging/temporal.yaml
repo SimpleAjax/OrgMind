@@ -1,0 +1,120 @@
+# =============================================================================
+# Temporal Server (with PostgreSQL backend)
+# =============================================================================
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orgmind-temporal-db
+  namespace: orgmind-staging
+spec:
+  serviceName: orgmind-temporal-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temporal-db
+  template:
+    metadata:
+      labels:
+        app: temporal-db
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "temporal"
+        - name: POSTGRES_PASSWORD
+          value: "temporal"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 20Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orgmind-temporal-db
+  namespace: orgmind-staging
+spec:
+  type: ClusterIP
+  selector:
+    app: temporal-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+
+---
+# =============================================================================
+# Temporal Server
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orgmind-temporal
+  namespace: orgmind-staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temporal
+  template:
+    metadata:
+      labels:
+        app: temporal
+    spec:
+      containers:
+      - name: temporal
+        image: temporalio/auto-setup:1.22
+        ports:
+        - containerPort: 7233
+          name: frontend
+        env:
+        - name: DB
+          value: "postgresql"
+        - name: DB_PORT
+          value: "5432"
+        - name: POSTGRES_USER
+          value: "temporal"
+        - name: POSTGRES_PWD
+          value: "temporal"
+        - name: POSTGRES_SEEDS
+          value: "orgmind-temporal-db"
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+          limits:
+            cpu: 4000m
+            memory: 4Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orgmind-temporal
+  namespace: orgmind-staging
+spec:
+  type: ClusterIP
+  selector:
+    app: temporal
+  ports:
+  - name: frontend
+    port: 7233
+    targetPort: 7233

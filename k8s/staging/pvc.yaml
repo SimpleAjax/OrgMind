@@ -1,0 +1,17 @@
+# =============================================================================
+# Persistent Volume Claim for DuckDB data
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: orgmind-data-pvc
+  namespace: orgmind-staging
+  labels:
+    app: orgmind
+spec:
+  accessModes:
+  - ReadWriteMany  # Multiple pods can share DuckDB
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard  # Change based on cloud provider

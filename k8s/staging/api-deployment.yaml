@@ -1,0 +1,137 @@
+# =============================================================================
+# API Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orgmind-api
+  namespace: orgmind-staging
+  labels:
+    app: orgmind
+    component: api
+    environment: staging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: orgmind
+      component: api
+  template:
+    metadata:
+      labels:
+        app: orgmind
+        component: api
+        environment: staging
+    spec:
+      containers:
+      - name: api
+        image: ghcr.io/your-org/orgmind:latest
+        imagePullPolicy: Always
+        command: ["uvicorn", "orgmind.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        
+        # Environment variables from ConfigMap
+        envFrom:
+        - configMapRef:
+            name: orgmind-config
+        - secretRef:
+            name: orgmind-secrets
+        
+        # Additional environment variable for service type
+        env:
+        - name: SERVICE_TYPE
+          value: "api"
+        
+        # Resource limits
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        # Volume mounts
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: orgmind-data-pvc
+
+---
+# =============================================================================
+# API Service
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: orgmind-api
+  namespace: orgmind-staging
+  labels:
+    app: orgmind
+    component: api
+spec:
+  type: ClusterIP
+  selector:
+    app: orgmind
+    component: api
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+    protocol: TCP
+
+---
+# =============================================================================
+# API Horizontal Pod Autoscaler
+# =============================================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: orgmind-api-hpa
+  namespace: orgmind-staging
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: orgmind-api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
