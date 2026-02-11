@@ -120,3 +120,46 @@ class EventModel(Base):
     error_message: Mapped[Optional[str]] = mapped_column(Text)
     retry_count: Mapped[int] = mapped_column(Integer, server_default='0')
     received_at: Mapped[datetime] = mapped_column(TIMESTAMP_TYPE, server_default=func.now())
+
+# --- Domain Events (Published Events) ---
+
+class DomainEventModel(Base):
+    """
+    Storage model for domain events published by the system.
+    
+    This is separate from EventModel (which is for ingested external events).
+    DomainEventModel stores all internal events published via the event bus
+    for audit trail, replay, and debugging purposes.
+    """
+    __tablename__ = "domain_events"
+    
+    # Event identification
+    event_id: Mapped[str] = mapped_column(String, primary_key=True)
+    event_type: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    
+    # Entity reference
+    entity_type: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    entity_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    
+    # Multi-tenancy
+    tenant_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    user_id: Mapped[Optional[str]] = mapped_column(String, index=True)
+    
+    # Event data
+    payload: Mapped[Dict[str, Any]] = mapped_column(JSON_TYPE, nullable=False)
+    event_metadata: Mapped[Dict[str, Any]] = mapped_column("metadata", JSON_TYPE, server_default='{}')
+    
+    # Timestamps
+    timestamp: Mapped[datetime] = mapped_column(TIMESTAMP_TYPE, nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP_TYPE, server_default=func.now())
+    
+    # Publishing status
+    published: Mapped[bool] = mapped_column(Integer, server_default='1')  # SQLite compatible boolean
+    published_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP_TYPE)
+    
+    # Indexes for common queries
+    __table_args__ = (
+        Index('idx_domain_events_entity', 'entity_type', 'entity_id'),
+        Index('idx_domain_events_tenant_time', 'tenant_id', 'timestamp'),
+        Index('idx_domain_events_type_time', 'event_type', 'timestamp'),
+    )

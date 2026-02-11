@@ -19,12 +19,16 @@ dependencies = [
     # ==========================================================================
     # DATABASE ADAPTERS
     # ==========================================================================
+    "sqlalchemy>=2.0.0",
+    "psycopg2-binary>=2.9.0",  # PostgreSQL adapter
+    "alembic>=1.13.0",  # Database migrations
     "duckdb>=0.9.0",
     "neo4j>=5.15.0",
     "qdrant-client>=1.7.0",
     "meilisearch>=0.31.0",
     "minio>=7.2.0",
     "redis>=5.0.0",
+    "nats-py>=2.7.0",  # NATS JetStream for event bus
     
     # ==========================================================================
     # WORKFLOW ENGINE

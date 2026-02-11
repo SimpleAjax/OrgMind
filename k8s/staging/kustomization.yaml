@@ -17,6 +17,7 @@ resources:
   - worker-deployment.yaml
   - indexer-deployment.yaml
   - ingress.yaml
+  - nats.yaml
   - redis.yaml
   - neo4j.yaml
   - postgres.yaml

@@ -67,3 +67,13 @@ class ObjectRepository(BaseRepository[ObjectModel]):
             ObjectModel.status != 'deleted'
         ).limit(limit).offset(offset)
         return list(session.scalars(stmt).all())
+
+    def list_by_ids(self, session: Session, ids: List[str]) -> List[ObjectModel]:
+        """Fetch multiple objects by their IDs."""
+        if not ids:
+            return []
+        stmt = select(ObjectModel).where(
+            ObjectModel.id.in_(ids),
+            ObjectModel.status != 'deleted'
+        )
+        return list(session.scalars(stmt).all())

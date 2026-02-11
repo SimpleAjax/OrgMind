@@ -7,6 +7,26 @@ services:
   # =============================================================================
   # EVENT BUS
   # =============================================================================
+  nats:
+    image: nats:latest
+    container_name: orgmind-nats
+    ports:
+      - "4222:4222" # Client connections
+      - "8222:8222" # HTTP monitoring
+      - "6222:6222" # Cluster routing
+    command:
+      - "--jetstream"
+      - "--store_dir=/data"
+      - "--http_port=8222"
+    volumes:
+      - nats_data:/data
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8222/healthz" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (Legacy - keeping for other use cases)
   redis:
     image: redis:7-alpine
     container_name: orgmind-redis
@@ -204,6 +224,7 @@ services:
 # VOLUMES
 # =============================================================================
 volumes:
+  nats_data:
   redis_data:
   neo4j_data:
   neo4j_logs:

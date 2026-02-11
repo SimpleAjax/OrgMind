@@ -43,10 +43,16 @@ class Settings(BaseSettings):
     DUCKDB_THREADS: int = 4
 
     # =========================================================================
-    # REDIS (Event Bus)
+    # REDIS (Event Bus - Legacy)
     # =========================================================================
     REDIS_URL: str = "redis://localhost:6379"
     REDIS_MAX_CONNECTIONS: int = 10
+
+    # =========================================================================
+    # NATS (Event Bus - Primary)
+    # =========================================================================
+    NATS_URL: str = "nats://localhost:4222"
+    NATS_MAX_RECONNECT_ATTEMPTS: int = 60
 
     # =========================================================================
     # NEO4J (Graph Index)
