@@ -12,7 +12,6 @@ namespace: orgmind-staging
 resources:
   - namespace.yaml
   - configmap.yaml
-  - secret.yaml
   - pvc.yaml
   - api-deployment.yaml
   - worker-deployment.yaml
@@ -20,7 +19,15 @@ resources:
   - ingress.yaml
   - redis.yaml
   - neo4j.yaml
+  - postgres.yaml
   - qdrant.yaml
   - meilisearch.yaml
   - minio.yaml
   - temporal.yaml
+
+secretGenerator:
+  - name: orgmind-secrets
+    envs:
+      - .env
+    options:
+      disableNameSuffixHash: true

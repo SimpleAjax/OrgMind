@@ -222,3 +222,20 @@ patches:
       kind: HorizontalPodAutoscaler
       metadata:
         name: orgmind-indexer-hpa
+
+  # ── Postgres StatefulSet: use local-path storage ──
+  - target:
+      kind: StatefulSet
+      name: orgmind-postgres
+    patch: |-
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: orgmind-postgres
+      spec:
+        volumeClaimTemplates:
+        - metadata:
+            name: postgres-data
+          spec:
+            storageClassName: local-path
+
