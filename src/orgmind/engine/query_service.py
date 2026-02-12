@@ -108,13 +108,13 @@ class GraphQueryService:
         RETURN DISTINCT
             source.id as source_id, 
             source.type_id as source_type_id,
-            source.data as source_data,
+            properties(source) as source_data,
             target.id as target_id, 
             target.type_id as target_type_id,
-            target.data as target_data,
+            properties(target) as target_data,
             r.id as link_id, 
             r.type_id as link_type_id, 
-            r.data as link_data
+            properties(r) as link_data
         LIMIT $limit
         """
         
@@ -156,13 +156,13 @@ class GraphQueryService:
         RETURN DISTINCT
             source.id as source_id, 
             source.type_id as source_type_id,
-            source.data as source_data,
+            properties(source) as source_data,
             target.id as target_id, 
             target.type_id as target_type_id,
-            target.data as target_data,
+            properties(target) as target_data,
             r.id as link_id, 
             r.type_id as link_type_id, 
-            r.data as link_data
+            properties(r) as link_data
         """
         
         try:
@@ -178,13 +178,22 @@ class GraphQueryService:
             raise
 
     def _parse_json(self, value: Any) -> Dict:
-        """Helper to parse potentially serialized JSON."""
+        """Helper to parse potentially serialized JSON or return property map."""
         if isinstance(value, str):
             try:
                 return json.loads(value)
             except (json.JSONDecodeError, TypeError):
                 return {}
         return value if isinstance(value, dict) else {}
+
+    def _filter_system_props(self, props: Dict[str, Any]) -> Dict[str, Any]:
+        """Remove system properties from the data dictionary."""
+        if not isinstance(props, dict):
+            return {}
+        return {
+            k: v for k, v in props.items() 
+            if k not in {'id', 'type_id', 'tenant_id', 'created_at', 'updated_at'}
+        }
 
     def _process_flat_results(self, session: Session, results: List[Dict[str, Any]]) -> GraphResult:
         """
@@ -199,7 +208,7 @@ class GraphQueryService:
             # Source Node
             s_id = row.get("source_id")
             if s_id and s_id not in nodes_map:
-                s_data = self._parse_json(row.get("source_data"))
+                s_data = self._filter_system_props(self._parse_json(row.get("source_data")))
                 nodes_map[s_id] = GraphNode(
                     id=s_id, 
                     type_id=row.get("source_type_id", ""), 
@@ -210,7 +219,7 @@ class GraphQueryService:
             # Target Node
             t_id = row.get("target_id")
             if t_id and t_id not in nodes_map:
-                t_data = self._parse_json(row.get("target_data"))
+                t_data = self._filter_system_props(self._parse_json(row.get("target_data")))
                 nodes_map[t_id] = GraphNode(
                     id=t_id, 
                     type_id=row.get("target_type_id", ""), 
@@ -233,7 +242,7 @@ class GraphQueryService:
                         type_id=row.get("link_type_id", ""),
                         source_id=s_id,
                         target_id=t_id,
-                        data=l_data
+                        data=self._filter_system_props(l_data)
                     )
                     edges.append(edge)
         

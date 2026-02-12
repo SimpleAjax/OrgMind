@@ -82,21 +82,18 @@ class TestGraphQueryService:
         db_session.commit()
         
         # Create nodes in Neo4j (simulating sync)
-        # Note: We must serialize data as JSON string as per our worker logic
+        # Note: We now flatten data properties.
         neo4j.execute_write(
             """
-            CREATE (a:Object {id: $id1, type_id: $type_id, data: $data1})
-            CREATE (b:Object {id: $id2, type_id: $type_id, data: $data2})
-            CREATE (a)-[r:LINK {id: $link_id, type_id: 'knows_type', data: $link_data}]->(b)
+            CREATE (a:Object {id: $id1, type_id: $type_id, name: 'Alice', role: 'Engineer', level: 'Senior'})
+            CREATE (b:Object {id: $id2, type_id: $type_id, name: 'Bob', role: 'Manager', level: 'Lead'})
+            CREATE (a)-[r:LINK {id: $link_id, type_id: 'knows_type', since: 2023}]->(b)
             """,
             {
                 "id1": alice.id,
-                "data1": json.dumps({"name": "Alice"}), # Graph often has partial data
                 "id2": bob.id,
-                "data2": json.dumps({"name": "Bob"}),
                 "type_id": type_id,
                 "link_id": str(uuid4()),
-                "link_data": json.dumps({"since": 2023})
             }
         )
         
@@ -143,20 +140,20 @@ class TestGraphQueryService:
         
         db_session.commit()
         
-        # Create Neo4j path
+        # Create Neo4j path with flattened properties
         neo4j.execute_write(
             """
-            CREATE (a:Object {id: $id_a, type_id: $tid, data: $d_a})
-            CREATE (b:Object {id: $id_b, type_id: $tid, data: $d_b})
-            CREATE (c:Object {id: $id_c, type_id: $tid, data: $d_c})
-            CREATE (a)-[:LINK {id: 'l1', type_id: 't', data: '{}'}]->(b)
-            CREATE (b)-[:LINK {id: 'l2', type_id: 't', data: '{}'}]->(c)
+            CREATE (a:Object {id: $id_a, type_id: $tid, label: 'Node A'})
+            CREATE (b:Object {id: $id_b, type_id: $tid, label: 'Node B'})
+            CREATE (c:Object {id: $id_c, type_id: $tid, label: 'Node C'})
+            CREATE (a)-[:LINK {id: 'l1', type_id: 't'}]->(b)
+            CREATE (b)-[:LINK {id: 'l2', type_id: 't'}]->(c)
             """,
             {
-                "id_a": id_a, "d_a": json.dumps({"label": "Node A"}),
-                "id_b": id_b, "d_b": json.dumps({"label": "Node B"}),
-                "id_c": id_c, "d_c": json.dumps({"label": "Node C"}),
-                "tid": type_id
+                "id_a": id_a,
+                "id_b": id_b,
+                "id_c": id_c,
+                "tid": type_id,
             }
         )
         

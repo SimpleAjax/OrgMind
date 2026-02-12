@@ -180,10 +180,11 @@ class TestNeo4jIndexWorker:
         assert node["type_id"] == test_type.id
         assert node["tenant_id"] == str(tenant_id)
         
-        # Data is stored as JSON string
-        node_data = json.loads(node["data"])
-        assert node_data["name"] == "Alice"
-        assert node_data["age"] == 30
+        assert node["tenant_id"] == str(tenant_id)
+        
+        # Data is stored as flattened properties
+        assert node["name"] == "Alice"
+        assert node["age"] == 30
     
     @pytest.mark.asyncio
     async def test_object_updated_syncs_to_graph(
@@ -229,8 +230,8 @@ class TestNeo4jIndexWorker:
         
         assert len(result) == 1
         node = result[0]["o"]
-        node_data = json.loads(node["data"])
-        assert node_data["age"] == 26  # Updated value
+        # flattened properties
+        assert node["age"] == 26  # Updated value
     
     @pytest.mark.asyncio
     async def test_object_deleted_removes_from_graph(
@@ -340,17 +341,18 @@ class TestNeo4jIndexWorker:
         assert rel["id"] == created_link.id
         assert rel["type_id"] == test_link_type.id
         
-        rel_data = json.loads(rel["data"])
-        assert rel_data["since"] == "2020"
+        assert rel["id"] == created_link.id
+        assert rel["type_id"] == test_link_type.id
+        
+        # properties are flattened
+        assert rel["since"] == "2020"
         
         # Verify we can traverse the relationship
         from_node = result[0]["from"]
         to_node = result[0]["to"]
         
-        from_data = json.loads(from_node["data"])
-        to_data = json.loads(to_node["data"])
-        assert from_data["name"] == "Alice"
-        assert to_data["name"] == "Bob"
+        assert from_node["name"] == "Alice"
+        assert to_node["name"] == "Bob"
     
     @pytest.mark.asyncio
     async def test_link_deleted_removes_relationship(
@@ -458,7 +460,7 @@ class TestNeo4jIndexWorker:
         result = neo4j.execute_read(
             """
             MATCH path = (start:Object {id: $alice_id})-[:LINK*1..2]->(friend:Object)
-            RETURN friend.data AS data, length(path) AS distance
+            RETURN properties(friend) AS data, length(path) AS distance
             ORDER BY distance
             """,
             {"alice_id": alice.id},
@@ -467,8 +469,9 @@ class TestNeo4jIndexWorker:
         # Should find Bob (distance 1) and Charlie (distance 2)
         assert len(result) == 2
         
-        bob_data = json.loads(result[0]["data"])
-        charlie_data = json.loads(result[1]["data"])
+        # data is now a dict because we returned properties(friend)
+        bob_data = result[0]["data"]
+        charlie_data = result[1]["data"]
         
         assert bob_data["name"] == "Bob"
         assert result[0]["distance"] == 1

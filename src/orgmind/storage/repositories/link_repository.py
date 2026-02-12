@@ -17,6 +17,34 @@ class LinkRepository(BaseRepository[LinkModel]):
     def get_type(self, session: Session, id: str) -> Optional[LinkTypeModel]:
         return session.get(LinkTypeModel, id)
 
+    def update_type(self, session: Session, id: str, updates: Dict[str, Any]) -> Optional[LinkTypeModel]:
+        link_type = self.get_type(session, id)
+        if not link_type:
+            return None
+            
+        if 'name' in updates:
+            link_type.name = updates['name']
+        if 'description' in updates:
+            link_type.description = updates['description']
+        if 'source_type' in updates:
+            link_type.source_type = updates['source_type']
+        if 'target_type' in updates:
+            link_type.target_type = updates['target_type']
+        if 'cardinality' in updates:
+            link_type.cardinality = updates['cardinality']
+        if 'properties' in updates:
+            link_type.properties = updates['properties']
+            
+        return link_type
+
+    def delete_type(self, session: Session, id: str) -> bool:
+        link_type = self.get_type(session, id)
+        if not link_type:
+            return False
+            
+        session.delete(link_type)
+        return True
+
     # --- Link Instances ---
     
     def create(self, session: Session, link: LinkModel) -> LinkModel:

@@ -22,6 +22,36 @@ class ObjectRepository(BaseRepository[ObjectModel]):
     def get_type(self, session: Session, type_id: str) -> Optional[ObjectTypeModel]:
         return session.get(ObjectTypeModel, type_id)
 
+    def update_type(self, session: Session, type_id: str, updates: Dict[str, Any]) -> Optional[ObjectTypeModel]:
+        obj_type = self.get_type(session, type_id)
+        if not obj_type:
+            return None
+        
+        # Update fields if present
+        if 'name' in updates:
+            obj_type.name = updates['name']
+        if 'description' in updates:
+            obj_type.description = updates['description']
+        if 'properties' in updates:
+            obj_type.properties = updates['properties']
+        if 'implements' in updates:
+            obj_type.implements = updates['implements']
+        if 'sensitive_properties' in updates:
+            obj_type.sensitive_properties = updates['sensitive_properties']
+        if 'default_permissions' in updates:
+            obj_type.default_permissions = updates['default_permissions']
+            
+        obj_type.version += 1
+        return obj_type
+
+    def delete_type(self, session: Session, type_id: str) -> bool:
+        obj_type = self.get_type(session, type_id)
+        if not obj_type:
+            return False
+        
+        session.delete(obj_type)
+        return True
+
     # --- Object Instances ---
     
     def create(self, session: Session, entity: ObjectModel) -> ObjectModel:

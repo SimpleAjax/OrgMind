@@ -197,3 +197,129 @@ class EventPublisher:
         
         await self.event_bus.publish(event)
         return event
+
+    # --- Object Type Events ---
+
+    async def publish_object_type_created(
+        self,
+        type_id: UUID,
+        name: str,
+        properties: Dict[str, Any],
+        tenant_id: UUID,
+        user_id: Optional[UUID] = None,
+    ) -> Event:
+        """Publish an object_type.created event."""
+        event = Event(
+            event_type=EventType.OBJECT_TYPE_CREATED,
+            entity_type="object_type",
+            entity_id=type_id,
+            tenant_id=tenant_id,
+            user_id=user_id,
+            payload={
+                "name": name,
+                "properties": properties,
+            },
+        )
+        await self.event_bus.publish(event)
+        return event
+
+    async def publish_object_type_updated(
+        self,
+        type_id: UUID,
+        updates: Dict[str, Any],
+        tenant_id: UUID,
+        user_id: Optional[UUID] = None,
+    ) -> Event:
+        """Publish an object_type.updated event."""
+        event = Event(
+            event_type=EventType.OBJECT_TYPE_UPDATED,
+            entity_type="object_type",
+            entity_id=type_id,
+            tenant_id=tenant_id,
+            user_id=user_id,
+            payload={"updates": updates},
+        )
+        await self.event_bus.publish(event)
+        return event
+
+    async def publish_object_type_deleted(
+        self,
+        type_id: UUID,
+        tenant_id: UUID,
+        user_id: Optional[UUID] = None,
+    ) -> Event:
+        """Publish an object_type.deleted event."""
+        event = Event(
+            event_type=EventType.OBJECT_TYPE_DELETED,
+            entity_type="object_type",
+            entity_id=type_id,
+            tenant_id=tenant_id,
+            user_id=user_id,
+            payload={},
+        )
+        await self.event_bus.publish(event)
+        return event
+
+    # --- Link Type Events ---
+
+    async def publish_link_type_created(
+        self,
+        type_id: UUID,
+        name: str,
+        source_type: str,
+        target_type: str,
+        tenant_id: UUID,
+        user_id: Optional[UUID] = None,
+    ) -> Event:
+        """Publish a link_type.created event."""
+        event = Event(
+            event_type=EventType.LINK_TYPE_CREATED,
+            entity_type="link_type",
+            entity_id=type_id,
+            tenant_id=tenant_id,
+            user_id=user_id,
+            payload={
+                "name": name,
+                "source_type": source_type,
+                "target_type": target_type,
+            },
+        )
+        await self.event_bus.publish(event)
+        return event
+
+    async def publish_link_type_updated(
+        self,
+        type_id: UUID,
+        updates: Dict[str, Any],
+        tenant_id: UUID,
+        user_id: Optional[UUID] = None,
+    ) -> Event:
+        """Publish a link_type.updated event."""
+        event = Event(
+            event_type=EventType.LINK_TYPE_UPDATED,
+            entity_type="link_type",
+            entity_id=type_id,
+            tenant_id=tenant_id,
+            user_id=user_id,
+            payload={"updates": updates},
+        )
+        await self.event_bus.publish(event)
+        return event
+
+    async def publish_link_type_deleted(
+        self,
+        type_id: UUID,
+        tenant_id: UUID,
+        user_id: Optional[UUID] = None,
+    ) -> Event:
+        """Publish a link_type.deleted event."""
+        event = Event(
+            event_type=EventType.LINK_TYPE_DELETED,
+            entity_type="link_type",
+            entity_id=type_id,
+            tenant_id=tenant_id,
+            user_id=user_id,
+            payload={},
+        )
+        await self.event_bus.publish(event)
+        return event
