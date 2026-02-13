@@ -293,15 +293,87 @@ class NatsEventBus(EventBus):
                     )
                 
                 except Exception as e:
-                    logger.error(
-                        f"Error handling event: {e}",
-                        pattern=pattern,
-                        error=str(e),
-                        subject=msg.subject,
-                        exc_info=True,
-                    )
-                    # Negative acknowledge to trigger redelivery
-                    await msg.nak()
+                    # Get delivery attempt count
+                    # metadata is not always available on Msg directly in older nats-py, 
+                    # but current versions have .metadata property which invokes a server call or parses reply.
+                    # Ideally we use msg.metadata which is async.
+                    try:
+                        meta = msg.metadata
+                    except Exception:
+                         # Fallback if metadata fetch fails (shouldn't happen with JS)
+                        meta = None
+
+                    num_delivered = meta.sequence.consumer if meta else 1 
+                    # Wait, msg.metadata returns a dataclass with num_delivered usually? 
+                    # Let's check nats-py docs mentally. `msg.metadata` returns `MsgMetadata`.
+                    # It has `num_delivered`.
+                    
+                    # Correction: msg.metadata is a property that raises if not JS message, 
+                    # but we are in JS.
+                    
+                    current_attempt = 1
+                    try:
+                         # msg.metadata is standard in newer nats-py
+                         md = msg.metadata
+                         current_attempt = md.num_delivered
+                    except Exception:
+                         pass
+
+                    max_retries = 5
+                    
+                    if current_attempt > max_retries:
+                         logger.error(
+                             "Max retries exceeded, moving to DLQ",
+                             event_id=str(event_data.get("event_id")) if 'event_data' in locals() else "unknown",
+                             subject=msg.subject,
+                             attempts=current_attempt,
+                             error=str(e)
+                         )
+                         
+                         # Publish to DLQ
+                         dlq_subject = f"dlq.{msg.subject}"
+                         try:
+                            await self.js.publish(
+                                dlq_subject,
+                                msg.data,
+                                headers={
+                                    "x-original-subject": msg.subject,
+                                    "x-error": str(e),
+                                    "x-attempts": str(current_attempt)
+                                }
+                            )
+                            # Ack original to remove from main queue
+                            await msg.ack()
+                         except Exception as dlq_error:
+                             logger.error("Failed to publish to DLQ", error=str(dlq_error))
+                             # If DLQ fails, we might still want to Nak to try again later?
+                             # Or Term? For now, we Nak (infinite loop risk if DLQ is down).
+                             await msg.nak(delay=60) # Try again in a minute
+
+                    else:
+                        # Exponential backoff
+                        # 1st retry (deliver=1) -> delay? No, deliver=1 is first try.
+                        # If we are here, we failed 1st try. Next will be 2nd.
+                        # We want delay before 2nd try.
+                        # num_delivered is 1 (current).
+                        delay = 0.5 * (2 ** (current_attempt - 1))
+                        # Cap delay at 60s
+                        delay = min(delay, 60.0)
+
+                        logger.warning(
+                            f"Error handling event, retrying in {delay:.2f}s",
+                            subject=msg.subject,
+                            attempt=current_attempt,
+                            error=str(e)
+                        )
+                        
+                        # Nak with delay
+                        try:
+                            await msg.nak(delay=delay)
+                        except TypeError:
+                            # Fallback for older nats-py
+                            await asyncio.sleep(delay)
+                            await msg.nak()
         
         except asyncio.CancelledError:
             logger.info(f"Message processing cancelled for pattern: {pattern}")

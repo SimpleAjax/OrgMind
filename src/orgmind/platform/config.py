@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
     API_WORKERS: int = 1
+    WORKER_HEALTH_PORT: int = 8081
     CORS_ORIGINS: str = "http://localhost:3000"
 
     # =========================================================================
