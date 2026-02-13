@@ -15,33 +15,34 @@ dependencies = [
     "uvicorn[standard]>=0.27.0",
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
-    
+
     # ==========================================================================
     # DATABASE ADAPTERS
     # ==========================================================================
     "sqlalchemy>=2.0.0",
-    "psycopg2-binary>=2.9.0",  # PostgreSQL adapter
-    "alembic>=1.13.0",  # Database migrations
+    "psycopg2-binary>=2.9.0", # PostgreSQL adapter
+    "alembic>=1.13.0",        # Database migrations
     "duckdb>=0.9.0",
     "neo4j>=5.15.0",
     "qdrant-client>=1.7.0",
     "meilisearch>=0.31.0",
     "minio>=7.2.0",
     "redis>=5.0.0",
-    "nats-py>=2.7.0",  # NATS JetStream for event bus
-    
+    "nats-py>=2.7.0",         # NATS JetStream for event bus
+
     # ==========================================================================
     # WORKFLOW ENGINE
     # ==========================================================================
     "temporalio>=1.4.0",
-    
+
     # ==========================================================================
     # AI / LLM
     # ==========================================================================
     "openai>=1.10.0",
     "tiktoken>=0.5.0",
     "json-logic-qubit>=0.9.0",
-    
+    "fastembed>=0.2.0",
+
     # ==========================================================================
     # OBSERVABILITY
     # ==========================================================================
@@ -53,7 +54,7 @@ dependencies = [
     "opentelemetry-exporter-otlp>=1.22.0",
     "opentelemetry-instrumentation-fastapi>=0.43b0",
     "opentelemetry-instrumentation-httpx>=0.43b0",
-    
+
     # ==========================================================================
     # UTILITIES
     # ==========================================================================
@@ -76,14 +77,14 @@ dev = [
     "pytest-mock>=3.12.0",
     "httpx>=0.26.0",
     "testcontainers>=3.7.0",
-    
+
     # Linting & Formatting
     "ruff>=0.1.0",
     "mypy>=1.8.0",
-    
+
     # Security
     "bandit>=1.7.0",
-    
+
     # Type stubs
     "types-redis>=4.6.0",
 ]
@@ -102,20 +103,20 @@ line-length = 100
 
 [tool.ruff.lint]
 select = [
-    "E",      # pycodestyle errors
-    "W",      # pycodestyle warnings
-    "F",      # pyflakes
-    "I",      # isort
-    "B",      # flake8-bugbear
-    "C4",     # flake8-comprehensions
-    "UP",     # pyupgrade
-    "ARG",    # flake8-unused-arguments
-    "SIM",    # flake8-simplify
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "ARG", # flake8-unused-arguments
+    "SIM", # flake8-simplify
 ]
 ignore = [
-    "E501",   # line too long (handled by formatter)
-    "B008",   # function call in default argument
-    "B904",   # raise without from inside except
+    "E501", # line too long (handled by formatter)
+    "B008", # function call in default argument
+    "B904", # raise without from inside except
 ]
 
 [tool.ruff.lint.isort]
@@ -133,9 +134,7 @@ warn_unused_ignores = true
 asyncio_mode = "auto"
 testpaths = ["tests"]
 addopts = "-v --tb=short"
-filterwarnings = [
-    "ignore::DeprecationWarning",
-]
+filterwarnings = ["ignore::DeprecationWarning"]
 
 [tool.coverage.run]
 source = ["src/orgmind"]

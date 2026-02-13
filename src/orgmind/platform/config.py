@@ -99,6 +99,12 @@ class Settings(BaseSettings):
     OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
 
     # =========================================================================
+    # LOCAL AI
+    # =========================================================================
+    EMBEDDING_PROVIDER: str = "local"  # "openai" or "local"
+    LOCAL_EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
+
+    # =========================================================================
     # OBSERVABILITY
     # =========================================================================
     OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://localhost:4317"

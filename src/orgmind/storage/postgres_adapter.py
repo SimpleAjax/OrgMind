@@ -70,7 +70,8 @@ class PostgresAdapter(StorageAdapter):
             with self._engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
             return True
-        except Exception:
+        except Exception as e:
+            logger.exception("postgres unhealthy")
             return False
 
     @contextmanager
