@@ -13,7 +13,7 @@ from prometheus_client import make_asgi_app
 
 from orgmind.platform.config import settings
 from orgmind.platform.logging import configure_logging, get_logger
-from orgmind.api.routers import objects, types
+from orgmind.api.routers import objects, types, rules, agents
 from orgmind.api.dependencies import (
     init_resources,
     close_resources,
@@ -132,6 +132,8 @@ async def readiness() -> dict:
 # app.include_router(workflows.router, prefix="/api/v1/workflows", tags=["Workflows"])
 app.include_router(objects.router, prefix="/api/v1/objects", tags=["Objects"])
 app.include_router(types.router, prefix="/api/v1/types", tags=["Types"])
+app.include_router(rules.router, prefix="/api/v1/rules", tags=["Rules"])
+app.include_router(agents.router, prefix="/api/v1/agents", tags=["Agents"])
 
 
 if __name__ == "__main__":

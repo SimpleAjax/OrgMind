@@ -12,6 +12,7 @@ import logging
 from sqlalchemy.orm import Session
 
 from orgmind.storage.models import ObjectModel, ObjectTypeModel, LinkModel, LinkTypeModel, DomainEventModel
+from orgmind.storage.models_access_control import UserModel
 from orgmind.storage.repositories.object_repository import ObjectRepository
 from orgmind.storage.repositories.link_repository import LinkRepository
 from orgmind.storage.repositories.domain_event_repository import DomainEventRepository
@@ -538,9 +539,16 @@ class OntologyService:
         return self.object_repo.get(session, object_id)
     
     def list_objects(
-        self, session: Session, limit: int = 100, offset: int = 0
+        self, 
+        session: Session, 
+        limit: int = 100, 
+        offset: int = 0,
+        user: Optional[UserModel] = None
     ) -> List[ObjectModel]:
-        """List objects (no event needed for reads)."""
+        """List objects with optional RLS filtering."""
+        if user:
+            is_admin = any(role.name.lower() == "admin" for role in user.roles)
+            return self.object_repo.list_filtered(session, user.id, is_admin, limit, offset)
         return self.object_repo.list(session, limit, offset)
     
     def list_objects_by_type(

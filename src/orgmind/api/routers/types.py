@@ -10,8 +10,10 @@ from sqlalchemy.orm import Session
 
 from orgmind.api import schemas
 from orgmind.api.dependencies import get_ontology_service, get_db
+from orgmind.api.dependencies_auth import require_current_user, require_permission
 from orgmind.engine.ontology_service import OntologyService
 from orgmind.storage.models import ObjectTypeModel
+from orgmind.storage.models_access_control import UserModel
 from orgmind.platform.logging import get_logger
 
 logger = get_logger(__name__)
@@ -23,8 +25,9 @@ async def create_object_type(
     obj_type: schemas.ObjectTypeCreate,
     service: Annotated[OntologyService, Depends(get_ontology_service)],
     session: Annotated[Session, Depends(get_db)],
-    tenant_id: UUID = Query(..., description="Tenant ID"),  # TODO: Extract from auth token
-    user_id: Optional[UUID] = Query(None, description="User ID"),
+    current_user: Annotated[UserModel, Depends(require_current_user)],
+    _auth: Annotated[bool, Depends(require_permission("object_type.create"))],
+    tenant_id: UUID = Query(..., description="Tenant ID"),
 ):
     """
     Create a new Object Type.
@@ -51,7 +54,7 @@ async def create_object_type(
             session=session,
             schema=model,
             tenant_id=tenant_id,
-            user_id=user_id
+            user_id=current_user.id
         )
         return created
     except Exception as e:
@@ -63,6 +66,8 @@ async def get_object_type(
     type_id: UUID,
     service: Annotated[OntologyService, Depends(get_ontology_service)],
     session: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[UserModel, Depends(require_current_user)],
+    _auth: Annotated[bool, Depends(require_permission("object_type.read"))],
 ):
     """
     Get an Object Type by ID.
@@ -78,8 +83,9 @@ async def update_object_type(
     updates: schemas.ObjectTypeUpdate,
     service: Annotated[OntologyService, Depends(get_ontology_service)],
     session: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[UserModel, Depends(require_current_user)],
+    _auth: Annotated[bool, Depends(require_permission("object_type.update"))],
     tenant_id: UUID = Query(..., description="Tenant ID"),
-    user_id: Optional[UUID] = Query(None, description="User ID"),
 ):
     """
     Update an Object Type.
@@ -93,7 +99,7 @@ async def update_object_type(
         type_id=str(type_id),
         updates=update_data,
         tenant_id=tenant_id,
-        user_id=user_id
+        user_id=current_user.id
     )
     if not updated:
         raise HTTPException(status_code=404, detail="Object Type not found")
@@ -104,8 +110,9 @@ async def delete_object_type(
     type_id: UUID,
     service: Annotated[OntologyService, Depends(get_ontology_service)],
     session: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[UserModel, Depends(require_current_user)],
+    _auth: Annotated[bool, Depends(require_permission("object_type.delete"))],
     tenant_id: UUID = Query(..., description="Tenant ID"),
-    user_id: Optional[UUID] = Query(None, description="User ID"),
 ):
     """
     Delete an Object Type.
@@ -114,7 +121,7 @@ async def delete_object_type(
         session=session,
         type_id=str(type_id),
         tenant_id=tenant_id,
-        user_id=user_id
+        user_id=current_user.id
     )
     if not success:
         raise HTTPException(status_code=404, detail="Object Type not found")

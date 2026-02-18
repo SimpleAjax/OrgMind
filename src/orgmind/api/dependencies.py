@@ -2,7 +2,8 @@ from typing import Annotated, Generator
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from orgmind.storage.postgres_adapter import PostgresAdapter, PostgresConfig
+from orgmind.api.database import get_db, get_postgres_adapter, close_postgres_adapter
+from orgmind.api.dependencies_auth import get_current_user, require_current_user, require_permission
 from orgmind.events.nats_bus import NatsEventBus
 from orgmind.events.publisher import EventPublisher
 from orgmind.storage.repositories.object_repository import ObjectRepository
@@ -19,18 +20,11 @@ from orgmind.storage.search.meilisearch import MeiliSearchStore
 from orgmind.platform.ai.embeddings import EmbeddingProvider, get_embedding_provider as _get_embedding_provider_factory
 
 # Singletons
-_postgres_adapter: PostgresAdapter | None = None
 _nats_bus: NatsEventBus | None = None
 _vector_store: VectorStore | None = None
 _search_store: SearchStore | None = None
 _embedding_provider: EmbeddingProvider | None = None
 
-def get_postgres_adapter() -> PostgresAdapter:
-    global _postgres_adapter
-    if not _postgres_adapter:
-        config = PostgresConfig()
-        _postgres_adapter = PostgresAdapter(config)
-    return _postgres_adapter
 
 def get_event_bus() -> NatsEventBus:
     global _nats_bus
@@ -78,11 +72,9 @@ async def init_resources() -> None:
 
 async def close_resources() -> None:
     """Close all resources."""
-    global _postgres_adapter, _nats_bus, _vector_store, _search_store
+    global _nats_bus, _vector_store, _search_store
     
-    if _postgres_adapter:
-        _postgres_adapter.close()
-        _postgres_adapter = None
+    close_postgres_adapter()
         
     if _nats_bus:
         await _nats_bus.disconnect()
@@ -96,10 +88,6 @@ async def close_resources() -> None:
         await _search_store.close()
         _search_store = None
 
-def get_db() -> Generator[Session, None, None]:
-    adapter = get_postgres_adapter()
-    with adapter.get_session() as session:
-        yield session
 
 def get_event_publisher() -> EventPublisher:
     bus = get_event_bus()

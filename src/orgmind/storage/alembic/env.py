@@ -6,6 +6,11 @@ from sqlalchemy import pool
 from alembic import context
 from orgmind.storage.postgres_adapter import PostgresConfig
 from orgmind.storage.models import Base
+from orgmind.triggers.models import RuleModel  # Ensure RuleModel is registered
+from orgmind.storage.models_access_control import (
+    UserModel, RoleModel, PermissionModel, PolicyModel
+)  # Access Control Models
+from orgmind.storage.models_audit import AuditLogModel  # Audit Models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

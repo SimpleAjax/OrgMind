@@ -12,9 +12,13 @@ from orgmind.api.dependencies import get_ontology_service, get_db
 from orgmind.engine.ontology_service import OntologyService
 from orgmind.storage.models import ObjectTypeModel, ObjectModel
 
+from orgmind.api.dependencies_auth import require_current_user, require_permission
+from orgmind.storage.models_access_control import UserModel, RoleModel
+
 # Mock Dependencies
 mock_service = AsyncMock(spec=OntologyService)
 mock_session = MagicMock()
+mock_user = UserModel(id="test_user", email="test@example.com", roles=[])
 
 def override_get_ontology_service():
     return mock_service
@@ -22,15 +26,42 @@ def override_get_ontology_service():
 def override_get_db():
     yield mock_session
 
-app.dependency_overrides[get_ontology_service] = override_get_ontology_service
-app.dependency_overrides[get_db] = override_get_db
+def override_require_current_user():
+    return mock_user
+
+from orgmind.api.dependencies_auth import PermissionChecker
+
+original_dependency_overrides = {}
+original_permission_call = PermissionChecker.__call__
+
+def mock_permission_check(self, *args, **kwargs):
+    return True
+
+def simple_mock_call(self): 
+    return True
 
 client = TestClient(app)
 
-@pytest.fixture(autouse=True)
-def reset_mocks():
-    mock_service.reset_mock()
-    mock_session.reset_mock()
+@pytest.fixture(scope="module", autouse=True)
+def setup_teardown_module():
+    # Setup
+    global original_dependency_overrides
+    original_dependency_overrides = app.dependency_overrides.copy()
+    
+    # Apply Overrides
+    app.dependency_overrides[get_ontology_service] = override_get_ontology_service
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[require_current_user] = override_require_current_user
+    
+    # Patch PermissionChecker
+    PermissionChecker.__call__ = simple_mock_call
+    
+    yield
+    
+    # Teardown
+    app.dependency_overrides = original_dependency_overrides
+    PermissionChecker.__call__ = original_permission_call
+
 
 
 class TestObjectTypeRouter:
@@ -65,6 +96,8 @@ class TestObjectTypeRouter:
         response = client.post(v1_url, json=payload)
         
         # Verify Response
+        if response.status_code != 201:
+            print(f"\nResponse Body: {response.json()}\n")
         assert response.status_code == 201
         data = response.json()
         assert data["name"] == payload["name"]

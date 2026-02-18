@@ -163,3 +163,56 @@ class DomainEventModel(Base):
         Index('idx_domain_events_tenant_time', 'tenant_id', 'timestamp'),
         Index('idx_domain_events_type_time', 'event_type', 'timestamp'),
     )
+
+# --- Agents ---
+
+class AgentModel(Base):
+    __tablename__ = "agents"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    system_prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    owner_id: Mapped[str] = mapped_column(String, nullable=False, index=True) # User or Team ID
+    scope: Mapped[str] = mapped_column(String, nullable=False, server_default='USER') # USER, TEAM, ORG
+    llm_config: Mapped[Dict[str, Any]] = mapped_column("model_config", JSON_TYPE, server_default='{}')
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP_TYPE, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP_TYPE, server_default=func.now(), onupdate=func.now())
+    
+    parent_agent_id: Mapped[Optional[str]] = mapped_column(ForeignKey("agents.id"), nullable=True)
+
+    # Relationships
+    conversations: Mapped[List["ConversationModel"]] = relationship(back_populates="agent", cascade="all, delete-orphan")
+    parent_agent: Mapped[Optional["AgentModel"]] = relationship(remote_side=[id], backref="child_agents")
+
+# --- Conversations ---
+
+class ConversationModel(Base):
+    __tablename__ = "conversations"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    agent_id: Mapped[str] = mapped_column(ForeignKey("agents.id"), nullable=False, index=True)
+    user_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    title: Mapped[Optional[str]] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP_TYPE, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP_TYPE, server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    agent: Mapped["AgentModel"] = relationship(back_populates="conversations")
+    messages: Mapped[List["MessageModel"]] = relationship(back_populates="conversation", cascade="all, delete-orphan")
+
+# --- Messages ---
+
+class MessageModel(Base):
+    __tablename__ = "messages"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id"), nullable=False, index=True)
+    role: Mapped[str] = mapped_column(String, nullable=False) # user, assistant, system, tool
+    content: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    tool_calls: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON_TYPE)
+    tool_output: Mapped[Optional[str]] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP_TYPE, server_default=func.now())
+
+    # Relationships
+    conversation: Mapped["ConversationModel"] = relationship(back_populates="messages")

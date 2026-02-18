@@ -107,3 +107,23 @@ class ObjectRepository(BaseRepository[ObjectModel]):
             ObjectModel.status != 'deleted'
         )
         return list(session.scalars(stmt).all())
+    def list_filtered(
+        self, 
+        session: Session, 
+        user_id: str, 
+        is_admin: bool, 
+        limit: int = 100, 
+        offset: int = 0
+    ) -> List[ObjectModel]:
+        """
+        List objects with filtering based on user role.
+        If admin, return all.
+        If not admin, return only objects created by user.
+        """
+        stmt = select(ObjectModel).where(ObjectModel.status != 'deleted')
+        
+        if not is_admin:
+            stmt = stmt.where(ObjectModel.created_by == user_id)
+            
+        stmt = stmt.limit(limit).offset(offset)
+        return list(session.scalars(stmt).all())
