@@ -17,6 +17,10 @@ class LinkRepository(BaseRepository[LinkModel]):
     def get_type(self, session: Session, id: str) -> Optional[LinkTypeModel]:
         return session.get(LinkTypeModel, id)
 
+    def get_type_by_name(self, session: Session, name: str) -> Optional[LinkTypeModel]:
+        stmt = select(LinkTypeModel).where(LinkTypeModel.name == name)
+        return session.scalar(stmt)
+
     def update_type(self, session: Session, id: str, updates: Dict[str, Any]) -> Optional[LinkTypeModel]:
         link_type = self.get_type(session, id)
         if not link_type:

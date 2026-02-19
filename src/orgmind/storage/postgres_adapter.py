@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 class PostgresConfig(BaseSettings):
     """Configuration for Postgres Storage."""
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: SecretStr = "postgres"
+    POSTGRES_USER: str = "orgmind_dev"
+    POSTGRES_PASSWORD: SecretStr = "pwd"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "orgmind"
@@ -41,7 +41,7 @@ class PostgresAdapter(StorageAdapter):
             return
 
         try:
-            logger.info(f"Connecting to Postgres at {self.config.POSTGRES_HOST}:{self.config.POSTGRES_PORT}")
+            print(f"Connecting to Postgres at {self.config.POSTGRES_HOST}:{self.config.POSTGRES_PORT} as user {self.config.POSTGRES_USER} db:{self.config.POSTGRES_DB}")
             
             self._engine = create_engine(
                 self.config.connection_string,

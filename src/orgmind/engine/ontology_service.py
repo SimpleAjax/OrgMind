@@ -172,6 +172,10 @@ class OntologyService:
     def get_object_type(self, session: Session, type_id: str) -> Optional[ObjectTypeModel]:
         return self.object_repo.get_type(session, type_id)
 
+    def list_object_types(self, session: Session, limit: int = 100, offset: int = 0) -> List[ObjectTypeModel]:
+        """List all object types."""
+        return self.object_repo.list_types(session, limit, offset)
+
     # --- Link Type Operations ---
 
     async def create_link_type(

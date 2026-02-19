@@ -30,6 +30,14 @@ class EventPublisher:
     
     def __init__(self, event_bus: EventBus):
         self.event_bus = event_bus
+
+    async def publish(self, event: Event) -> None:
+        """Publish a generic event."""
+        logger.info(
+            f"Publishing generic event: {event.event_type.value}",
+            extra={"event_id": str(event.event_id)}
+        )
+        await self.event_bus.publish(event)
     
     async def publish_object_created(
         self,

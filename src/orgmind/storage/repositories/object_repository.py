@@ -22,6 +22,11 @@ class ObjectRepository(BaseRepository[ObjectModel]):
     def get_type(self, session: Session, type_id: str) -> Optional[ObjectTypeModel]:
         return session.get(ObjectTypeModel, type_id)
 
+    def get_type_by_name(self, session: Session, name: str) -> Optional[ObjectTypeModel]:
+        """Get object type by name."""
+        stmt = select(ObjectTypeModel).where(ObjectTypeModel.name == name)
+        return session.scalar(stmt)
+
     def update_type(self, session: Session, type_id: str, updates: Dict[str, Any]) -> Optional[ObjectTypeModel]:
         obj_type = self.get_type(session, type_id)
         if not obj_type:

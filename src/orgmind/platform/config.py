@@ -38,6 +38,15 @@ class Settings(BaseSettings):
     JWT_EXPIRY_HOURS: int = 24
 
     # =========================================================================
+    # POSTGRES (Source of Truth)
+    # =========================================================================
+    POSTGRES_USER: str = "orgmind"
+    POSTGRES_PASSWORD: str = "orgmind_password"
+    POSTGRES_DB: str = "orgmind"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_HOST: str = "localhost"
+
+    # =========================================================================
     # DUCKDB (Source of Truth)
     # =========================================================================
     DUCKDB_PATH: str = "data/orgmind.duckdb"

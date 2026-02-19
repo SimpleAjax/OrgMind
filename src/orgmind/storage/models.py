@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import (
-    String, Integer, Text, JSON, DateTime, ForeignKey, 
+    String, Integer, Boolean, Text, JSON, DateTime, ForeignKey, 
     Index, UniqueConstraint, func
 )
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
@@ -154,7 +154,7 @@ class DomainEventModel(Base):
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP_TYPE, server_default=func.now())
     
     # Publishing status
-    published: Mapped[bool] = mapped_column(Integer, server_default='1')  # SQLite compatible boolean
+    published: Mapped[bool] = mapped_column(Boolean, server_default='false')
     published_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP_TYPE)
     
     # Indexes for common queries

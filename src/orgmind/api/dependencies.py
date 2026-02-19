@@ -70,6 +70,16 @@ async def init_resources() -> None:
     search = get_search_store()
     await search.connect()
 
+    # Initialize Temporal Client
+    # We use the global getter which connects if not present, but for startup strictness:
+    global _temporal_client
+    try:
+        _temporal_client = await _connect_temporal_client()
+    except Exception as e:
+        # Log error but don't fail startup if Temporal is optional/down (or decided to fail)
+        # For P0 workflows, we might want to fail? Let's log for now.
+        print(f"Warning: Failed to connect to Temporal: {e}")
+
 async def close_resources() -> None:
     """Close all resources."""
     global _nats_bus, _vector_store, _search_store
@@ -88,6 +98,13 @@ async def close_resources() -> None:
         await _search_store.close()
         _search_store = None
 
+    # Temporal client doesn't have an explicit close for the high-level Client, 
+    # but strictly speaking we can leave it to GC or check if we need to close underlying service.
+    # The Client object doesn't have a close() method in python SDK (it manages connection pool).
+    # so we just clear the reference.
+    global _temporal_client
+    _temporal_client = None
+
 
 def get_event_publisher() -> EventPublisher:
     bus = get_event_bus()
@@ -102,3 +119,15 @@ def get_ontology_service(
         event_repo=DomainEventRepository(),
         event_publisher=publisher,
     )
+
+# Temporal
+from temporalio.client import Client
+from orgmind.workflows.client import get_temporal_client as _connect_temporal_client
+
+_temporal_client: Client | None = None
+
+async def get_temporal_client() -> Client:
+    global _temporal_client
+    if not _temporal_client:
+        _temporal_client = await _connect_temporal_client()
+    return _temporal_client
