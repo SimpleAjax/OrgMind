@@ -10,6 +10,7 @@ from .models import (
     ObjectTypeModel,
     SourceModel,
 )
+from .models_traces import DecisionTraceModel, ContextSnapshotModel
 
 __all__ = [
     "StorageAdapter",
@@ -21,4 +22,6 @@ __all__ = [
     "LinkTypeModel",
     "EventModel",
     "SourceModel",
+    "DecisionTraceModel",
+    "ContextSnapshotModel",
 ]
