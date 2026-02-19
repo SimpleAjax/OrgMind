@@ -18,6 +18,9 @@ class DecisionTraceModel(Base):
     rule_id: Mapped[Optional[str]] = mapped_column(String, index=True)
     trigger_event_id: Mapped[Optional[str]] = mapped_column(String, index=True) # ID of the event that triggered the rule
     
+    # Who did this?
+    user_id: Mapped[Optional[str]] = mapped_column(String, index=True)
+    
     # What was done?
     action_type: Mapped[str] = mapped_column(String, nullable=False, index=True)
     input_payload: Mapped[Dict[str, Any]] = mapped_column(JSON_TYPE, nullable=False)

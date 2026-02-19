@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OrgMind Context</title>
+  <style>
+    body { width: 300px; padding: 10px; font-family: sans-serif; }
+    h3 { margin-top: 0; }
+    input, textarea, button { width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+    textarea { height: 80px; }
+    .status { font-size: 0.8em; color: gray; }
+  </style>
+</head>
+<body>
+  <h3>Capture Context</h3>
+  <input type="text" id="url" readonly>
+  <textarea id="note" placeholder="Why are you here?"></textarea>
+  <button id="send">Send Context</button>
+  <div id="status" class="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -16,6 +16,11 @@ from .models_traces import (
     InferenceRuleModel,
     ContextSuggestionModel
 )
+from .models_context import (
+    ContextEventModel,
+    ContextLinkModel,
+    NudgeLogModel,
+)
 
 __all__ = [
     "StorageAdapter",
@@ -31,4 +36,7 @@ __all__ = [
     "ContextSnapshotModel",
     "InferenceRuleModel",
     "ContextSuggestionModel",
+    "ContextEventModel",
+    "ContextLinkModel",
+    "NudgeLogModel",
 ]

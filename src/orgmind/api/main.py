@@ -13,7 +13,7 @@ from prometheus_client import make_asgi_app
 
 from orgmind.platform.config import settings
 from orgmind.platform.logging import configure_logging, get_logger
-from orgmind.api.routers import objects, types, rules, agents, workflows, ingestion, traces
+from orgmind.api.routers import objects, types, rules, agents, workflows, ingestion, traces, context, slack
 from orgmind.api.dependencies import (
     init_resources,
     close_resources,
@@ -137,6 +137,8 @@ app.include_router(agents.router, prefix="/api/v1/agents", tags=["Agents"])
 app.include_router(workflows.router, prefix="/api/v1/workflows", tags=["Workflows"])
 app.include_router(ingestion.router, prefix="/api/v1/ingestion", tags=["Ingestion"])
 app.include_router(traces.router, prefix="/api/v1/traces", tags=["Traces"])
+app.include_router(context.router, prefix="/api/v1/context", tags=["Context"])
+app.include_router(slack.router, prefix="/api/v1/integrations/slack", tags=["Slack"])
 
 
 if __name__ == "__main__":

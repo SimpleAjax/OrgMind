@@ -1,0 +1,21 @@
+{
+    "manifest_version": 3,
+    "name": "OrgMind Context Capture",
+    "version": "0.1.0",
+    "description": "Captures context for OrgMind decisions.",
+    "permissions": [
+        "activeTab",
+        "tabs",
+        "storage"
+    ],
+    "host_permissions": [
+        "http://localhost:8000/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "Capture Context"
+    }
+}

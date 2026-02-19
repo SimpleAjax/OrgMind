@@ -115,6 +115,23 @@ class Settings(BaseSettings):
     LOCAL_EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
 
     # =========================================================================
+    # SLACK INTEGRATION
+    # =========================================================================
+    SLACK_BOT_TOKEN: str = ""
+    SLACK_SIGNING_SECRET: str = ""
+    SLACK_API_URL: str = "https://slack.com/api"
+
+    # =========================================================================
+    # EMAIL (SMTP)
+    # =========================================================================
+    SMTP_HOST: str = "localhost"
+    SMTP_PORT: int = 1025 # Mailhog/Mailpit default
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = "noreply@orgmind.ai"
+    SMTP_TLS: bool = False
+
+    # =========================================================================
     # OBSERVABILITY
     # =========================================================================
     OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://localhost:4317"
