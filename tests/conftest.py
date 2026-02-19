@@ -3,7 +3,10 @@ Pytest configuration and shared fixtures.
 """
 
 import os
+import sys
 import pytest
+
+sys.path.append(os.path.join(os.getcwd(), "src"))
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -53,6 +53,14 @@ def get_embedding_provider() -> EmbeddingProvider:
         _embedding_provider = _get_embedding_provider_factory()
     return _embedding_provider
 
+from orgmind.agents.llm import OpenAIProvider
+
+def get_llm_provider() -> OpenAIProvider:
+    return OpenAIProvider()
+
+
+
+
 async def init_resources() -> None:
     """Initialize all resources (DB, NATS, Vector, Search)."""
     adapter = get_postgres_adapter()
