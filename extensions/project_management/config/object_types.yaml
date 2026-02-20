@@ -1,0 +1,917 @@
+# ============================================================================
+# OrgMind AI Project Management - Object Types Configuration
+# ============================================================================
+# This file defines all entity types (Object Types) for the project management
+# domain. Each object type becomes a table in PostgreSQL and an entity in Neo4j.
+# ============================================================================
+
+version: "1.0"
+description: "Object types for AI-powered Project Management on OrgMind"
+
+object_types:
+  # ============================================================================
+  # CUSTOMER (Client Organization)
+  # ============================================================================
+  - id: ot_customer
+    name: "Customer"
+    description: "A client organization that has projects with the agency"
+    properties:
+      name:
+        type: string
+        required: true
+        description: "Company or organization name"
+      tier:
+        type: string
+        required: true
+        enum: [tier_1, tier_2, tier_3]
+        default: tier_2
+        description: "Customer tier affecting priority (tier_1 = highest)"
+      contract_value:
+        type: number
+        required: false
+        description: "Annual contract value in USD"
+      sla_level:
+        type: string
+        required: false
+        enum: [standard, premium, enterprise]
+        default: standard
+        description: "Service level agreement tier"
+      status:
+        type: string
+        required: true
+        enum: [active, inactive, at_risk]
+        default: active
+        description: "Customer status"
+      industry:
+        type: string
+        required: false
+        description: "Customer industry vertical"
+      account_manager_id:
+        type: ref
+        ref_target: ot_person
+        required: false
+        description: "Reference to assigned account manager"
+      notes:
+        type: string
+        required: false
+        description: "Additional notes about customer"
+    
+  # ============================================================================
+  # CONTACT INFO (Customer Contacts)
+  # ============================================================================
+  - id: ot_contact_info
+    name: "Contact Info"
+    description: "Contact person details for customers"
+    properties:
+      customer_id:
+        type: ref
+        ref_target: ot_customer
+        required: true
+        description: "Reference to parent customer"
+      name:
+        type: string
+        required: true
+        description: "Contact person's name"
+      email:
+        type: string
+        required: true
+        format: email
+        description: "Contact email address"
+      phone:
+        type: string
+        required: false
+        description: "Contact phone number"
+      role:
+        type: string
+        required: false
+        description: "Contact's role at customer (e.g., CTO, PM)"
+      is_primary:
+        type: boolean
+        required: true
+        default: false
+        description: "Whether this is the primary contact"
+    
+  # ============================================================================
+  # PROJECT
+  # ============================================================================
+  - id: ot_project
+    name: "Project"
+    description: "A project belonging to a customer"
+    properties:
+      name:
+        type: string
+        required: true
+        description: "Project name"
+      description:
+        type: string
+        required: false
+        description: "Detailed project description"
+      customer_id:
+        type: ref
+        ref_target: ot_customer
+        required: true
+        description: "Reference to customer"
+      status:
+        type: string
+        required: true
+        enum: [planning, active, on_hold, completed, cancelled]
+        default: planning
+        description: "Project lifecycle status"
+      type:
+        type: string
+        required: true
+        enum: [fixed_price, time_material, retainer]
+        description: "Project billing type"
+      planned_start:
+        type: datetime
+        required: true
+        description: "Planned project start date"
+      planned_end:
+        type: datetime
+        required: true
+        description: "Planned project end date"
+      actual_start:
+        type: datetime
+        required: false
+        description: "Actual project start date"
+      actual_end:
+        type: datetime
+        required: false
+        description: "Actual project completion date"
+      budget_hours:
+        type: number
+        required: false
+        description: "Budgeted hours for the project"
+      budget_amount:
+        type: number
+        required: false
+        description: "Budget in USD"
+      hourly_rate:
+        type: number
+        required: false
+        description: "Billable hourly rate"
+      priority_score:
+        type: number
+        required: false
+        min: 0
+        max: 100
+        description: "AI-calculated priority score (0-100)"
+      risk_score:
+        type: number
+        required: false
+        min: 0
+        max: 100
+        description: "AI-calculated risk score (0-100)"
+      business_value_score:
+        type: number
+        required: false
+        min: 0
+        max: 100
+        default: 50
+        description: "Business value rating (0-100)"
+      strategic_importance:
+        type: number
+        required: false
+        min: 0
+        max: 100
+        default: 50
+        description: "Strategic importance rating (0-100)"
+      pm_id:
+        type: ref
+        ref_target: ot_person
+        required: false
+        description: "Assigned project manager"
+      health_status:
+        type: string
+        required: false
+        enum: [green, yellow, red]
+        default: green
+        description: "Overall project health indicator"
+    
+  # ============================================================================
+  # SPRINT
+  # ============================================================================
+  - id: ot_sprint
+    name: "Sprint"
+    description: "A time-boxed iteration (typically 2 weeks)"
+    properties:
+      name:
+        type: string
+        required: true
+        description: "Sprint name (e.g., 'Sprint 12 - Feb 2026')"
+      start_date:
+        type: datetime
+        required: true
+        description: "Sprint start date"
+      end_date:
+        type: datetime
+        required: true
+        description: "Sprint end date"
+      status:
+        type: string
+        required: true
+        enum: [planning, active, completed, cancelled]
+        default: planning
+        description: "Sprint status"
+      total_capacity_hours:
+        type: number
+        required: false
+        default: 0
+        description: "Total team capacity in hours"
+      committed_hours:
+        type: number
+        required: false
+        default: 0
+        description: "Hours committed to tasks"
+      available_hours:
+        type: number
+        required: false
+        default: 0
+        description: "Remaining available hours"
+      goals:
+        type: array
+        items: string
+        required: false
+        description: "Sprint goals/objectives"
+      health_score:
+        type: number
+        required: false
+        min: 0
+        max: 100
+        default: 100
+        description: "Sprint health score (0-100)"
+      retrospective_notes:
+        type: string
+        required: false
+        description: "Notes from sprint retrospective"
+    
+  # ============================================================================
+  # SPRINT TASK (Junction with status)
+  # ============================================================================
+  - id: ot_sprint_task
+    name: "Sprint Task"
+    description: "Association between task and sprint with sprint-specific status"
+    properties:
+      sprint_id:
+        type: ref
+        ref_target: ot_sprint
+        required: true
+        description: "Reference to sprint"
+      task_id:
+        type: ref
+        ref_target: ot_task
+        required: true
+        description: "Reference to task"
+      planned_start:
+        type: datetime
+        required: false
+        description: "Planned start within sprint"
+      planned_end:
+        type: datetime
+        required: false
+        description: "Planned end within sprint"
+      status:
+        type: string
+        required: true
+        enum: [todo, in_progress, review, done, blocked]
+        default: todo
+        description: "Sprint-specific status"
+      actual_start:
+        type: datetime
+        required: false
+        description: "Actual start date"
+      actual_end:
+        type: datetime
+        required: false
+        description: "Actual completion date"
+      actual_hours:
+        type: number
+        required: false
+        default: 0
+        description: "Actual hours spent"
+      story_points_completed:
+        type: number
+        required: false
+        description: "Story points delivered"
+    
+  # ============================================================================
+  # TASK
+  # ============================================================================
+  - id: ot_task
+    name: "Task"
+    description: "An individual unit of work"
+    properties:
+      title:
+        type: string
+        required: true
+        description: "Task title"
+      description:
+        type: string
+        required: false
+        description: "Detailed task description"
+      project_id:
+        type: ref
+        ref_target: ot_project
+        required: true
+        description: "Parent project"
+      type:
+        type: string
+        required: true
+        enum: [feature, bug, tech_debt, research, documentation, meeting]
+        default: feature
+        description: "Type of work"
+      priority:
+        type: string
+        required: true
+        enum: [critical, high, medium, low]
+        default: medium
+        description: "Task priority"
+      status:
+        type: string
+        required: true
+        enum: [backlog, todo, in_progress, review, done, cancelled]
+        default: backlog
+        description: "Task status"
+      estimated_hours:
+        type: number
+        required: true
+        min: 0
+        description: "Estimated hours to complete"
+      story_points:
+        type: integer
+        required: false
+        min: 0
+        description: "Story points (if using agile)"
+      due_date:
+        type: datetime
+        required: false
+        description: "Task deadline"
+      earliest_start:
+        type: datetime
+        required: false
+        description: "Earliest possible start (based on dependencies)"
+      latest_start:
+        type: datetime
+        required: false
+        description: "Latest possible start (critical path)"
+      can_parallelize:
+        type: boolean
+        required: true
+        default: true
+        description: "Whether multiple people can work on this"
+      max_parallel_workers:
+        type: integer
+        required: false
+        default: 1
+        min: 1
+        description: "Maximum people who can work on this"
+      predicted_delay_probability:
+        type: number
+        required: false
+        min: 0
+        max: 1
+        description: "AI-predicted probability of delay (0-1)"
+      predicted_completion_date:
+        type: datetime
+        required: false
+        description: "AI-predicted completion date"
+      ai_notes:
+        type: string
+        required: false
+        description: "AI-generated notes about task"
+    
+  # ============================================================================
+  # TASK SKILL REQUIREMENT
+  # ============================================================================
+  - id: ot_task_skill_requirement
+    name: "Task Skill Requirement"
+    description: "Skills required for a task with proficiency levels"
+    properties:
+      task_id:
+        type: ref
+        ref_target: ot_task
+        required: true
+        description: "Reference to task"
+      skill_id:
+        type: ref
+        ref_target: ot_skill
+        required: true
+        description: "Reference to skill"
+      minimum_proficiency:
+        type: integer
+        required: true
+        min: 1
+        max: 4
+        description: "Minimum required proficiency (1=Beginner, 4=Expert)"
+      preferred_proficiency:
+        type: integer
+        required: false
+        min: 1
+        max: 4
+        description: "Preferred proficiency level"
+      is_mandatory:
+        type: boolean
+        required: true
+        default: true
+        description: "Whether this skill is mandatory"
+      notes:
+        type: string
+        required: false
+        description: "Additional requirements notes"
+    
+  # ============================================================================
+  # PERSON (Resource)
+  # ============================================================================
+  - id: ot_person
+    name: "Person"
+    description: "A team member or resource"
+    properties:
+      name:
+        type: string
+        required: true
+        description: "Full name"
+      email:
+        type: string
+        required: true
+        format: email
+        description: "Email address"
+      role:
+        type: string
+        required: true
+        enum: [developer, designer, pm, qa, devops, data_scientist, account_manager, other]
+        description: "Primary role"
+      employment_type:
+        type: string
+        required: true
+        enum: [full_time, part_time, contractor]
+        default: full_time
+        description: "Employment type"
+      working_hours_per_day:
+        type: number
+        required: true
+        default: 8
+        min: 1
+        max: 24
+        description: "Standard working hours per day"
+      timezone:
+        type: string
+        required: false
+        default: "UTC"
+        description: "Timezone (e.g., 'America/New_York')"
+      default_availability_percent:
+        type: number
+        required: true
+        default: 100
+        min: 0
+        max: 100
+        description: "Default availability percentage"
+      meeting_overhead_percent:
+        type: number
+        required: true
+        default: 20
+        min: 0
+        max: 100
+        description: "Expected meeting overhead percentage"
+      cost_rate_hourly:
+        type: number
+        required: false
+        description: "Internal cost rate per hour"
+      billing_rate_hourly:
+        type: number
+        required: false
+        description: "Billable rate per hour"
+      status:
+        type: string
+        required: true
+        enum: [active, inactive, on_leave]
+        default: active
+        description: "Person status"
+      start_date:
+        type: datetime
+        required: false
+        description: "Employment start date"
+      end_date:
+        type: datetime
+        required: false
+        description: "Employment end date (if applicable)"
+      manager_id:
+        type: ref
+        ref_target: ot_person
+        required: false
+        description: "Reporting manager"
+    
+  # ============================================================================
+  # SKILL
+  # ============================================================================
+  - id: ot_skill
+    name: "Skill"
+    description: "A skill that can be possessed by people and required by tasks"
+    properties:
+      name:
+        type: string
+        required: true
+        description: "Skill name (e.g., 'React', 'Python')"
+      category:
+        type: string
+        required: true
+        enum: [technical, design, domain, soft_skill, management]
+        description: "Skill category"
+      description:
+        type: string
+        required: false
+        description: "Skill description"
+      parent_skill_id:
+        type: ref
+        ref_target: ot_skill
+        required: false
+        description: "Parent skill for hierarchies"
+    
+  # ============================================================================
+  # PERSON SKILL (Junction with proficiency)
+  # ============================================================================
+  - id: ot_person_skill
+    name: "Person Skill"
+    description: "Association between person and skill with proficiency"
+    properties:
+      person_id:
+        type: ref
+        ref_target: ot_person
+        required: true
+        description: "Reference to person"
+      skill_id:
+        type: ref
+        ref_target: ot_skill
+        required: true
+        description: "Reference to skill"
+      proficiency_level:
+        type: integer
+        required: true
+        min: 1
+        max: 4
+        description: "Proficiency (1=Beginner, 2=Intermediate, 3=Advanced, 4=Expert)"
+      years_experience:
+        type: number
+        required: false
+        description: "Years of experience with this skill"
+      is_verified:
+        type: boolean
+        required: true
+        default: false
+        description: "Whether skill is verified (certification/peer review)"
+      verified_by_id:
+        type: ref
+        ref_target: ot_person
+        required: false
+        description: "Who verified the skill"
+      verified_at:
+        type: datetime
+        required: false
+        description: "When skill was verified"
+    
+  # ============================================================================
+  # ASSIGNMENT (Task-Person with attributes)
+  # ============================================================================
+  - id: ot_assignment
+    name: "Assignment"
+    description: "Assignment of a person to a task with allocation details"
+    properties:
+      person_id:
+        type: ref
+        ref_target: ot_person
+        required: true
+        description: "Assigned person"
+      task_id:
+        type: ref
+        ref_target: ot_task
+        required: true
+        description: "Assigned task"
+      allocation_percent:
+        type: number
+        required: true
+        min: 0
+        max: 100
+        description: "Percentage of time allocated"
+      role_in_task:
+        type: string
+        required: true
+        enum: [primary, support, reviewer]
+        default: primary
+        description: "Role in task execution"
+      planned_start:
+        type: datetime
+        required: true
+        description: "Planned assignment start"
+      planned_end:
+        type: datetime
+        required: true
+        description: "Planned assignment end"
+      planned_hours:
+        type: number
+        required: true
+        description: "Hours planned for this assignment"
+      actual_start:
+        type: datetime
+        required: false
+        description: "Actual start date"
+      actual_end:
+        type: datetime
+        required: false
+        description: "Actual end date"
+      actual_hours:
+        type: number
+        required: false
+        default: 0
+        description: "Actual hours worked"
+      status:
+        type: string
+        required: true
+        enum: [planned, active, completed, cancelled]
+        default: planned
+        description: "Assignment status"
+    
+  # ============================================================================
+  # LEAVE PERIOD
+  # ============================================================================
+  - id: ot_leave_period
+    name: "Leave Period"
+    description: "Time off for a person (vacation, sick, training)"
+    properties:
+      person_id:
+        type: ref
+        ref_target: ot_person
+        required: true
+        description: "Person on leave"
+      leave_type:
+        type: string
+        required: true
+        enum: [vacation, sick, training, other]
+        description: "Type of leave"
+      start_date:
+        type: datetime
+        required: true
+        description: "Leave start date"
+      end_date:
+        type: datetime
+        required: true
+        description: "Leave end date"
+      approval_status:
+        type: string
+        required: true
+        enum: [pending, approved, rejected]
+        default: pending
+        description: "Approval status"
+      approved_by_id:
+        type: ref
+        ref_target: ot_person
+        required: false
+        description: "Who approved the leave"
+      approved_at:
+        type: datetime
+        required: false
+        description: "When leave was approved"
+      reason:
+        type: string
+        required: false
+        description: "Reason for leave"
+      impact_calculated:
+        type: boolean
+        required: true
+        default: false
+        description: "Whether impact analysis has been run"
+    
+  # ============================================================================
+  # PRODUCTIVITY PROFILE
+  # ============================================================================
+  - id: ot_productivity_profile
+    name: "Productivity Profile"
+    description: "Historical productivity metrics for a person per project type"
+    properties:
+      person_id:
+        type: ref
+        ref_target: ot_person
+        required: true
+        description: "Reference to person"
+      project_type:
+        type: string
+        required: true
+        enum: [fixed_price, time_material, retainer]
+        description: "Project type these metrics apply to"
+      velocity_factor:
+        type: number
+        required: true
+        default: 1.0
+        description: "Multiplier (1.0 = average, 1.2 = 20% faster)"
+      estimation_accuracy:
+        type: number
+        required: true
+        default: 1.0
+        description: "Ratio actual/estimated (1.0 = perfect estimates)"
+      avg_task_completion_hours:
+        type: number
+        required: false
+        description: "Average hours to complete tasks"
+      tasks_completed_count:
+        type: integer
+        required: true
+        default: 0
+        description: "Number of completed tasks in sample"
+      last_updated:
+        type: datetime
+        required: true
+        description: "When profile was last updated"
+    
+  # ============================================================================
+  # NUDGE (AI-generated notification)
+  # ============================================================================
+  - id: ot_nudge
+    name: "Nudge"
+    description: "AI-generated proactive notification for project managers"
+    properties:
+      type:
+        type: string
+        required: true
+        enum: [risk, opportunity, conflict, suggestion]
+        description: "Type of nudge"
+      severity:
+        type: string
+        required: true
+        enum: [info, warning, critical]
+        description: "Severity level"
+      title:
+        type: string
+        required: true
+        description: "Short nudge title"
+      description:
+        type: string
+        required: true
+        description: "Detailed description"
+      context_data:
+        type: object
+        required: false
+        description: "JSON data with related entity IDs and context"
+      recipient_id:
+        type: ref
+        ref_target: ot_person
+        required: true
+        description: "Target recipient (PM or resource manager)"
+      related_project_id:
+        type: ref
+        ref_target: ot_project
+        required: false
+        description: "Related project (if applicable)"
+      related_person_id:
+        type: ref
+        ref_target: ot_person
+        required: false
+        description: "Related person (if applicable)"
+      related_task_id:
+        type: ref
+        ref_target: ot_task
+        required: false
+        description: "Related task (if applicable)"
+      status:
+        type: string
+        required: true
+        enum: [new, acknowledged, resolved, dismissed]
+        default: new
+        description: "Nudge status"
+      ai_confidence:
+        type: number
+        required: false
+        min: 0
+        max: 1
+        description: "AI confidence score (0-1)"
+      created_at:
+        type: datetime
+        required: true
+        description: "When nudge was created"
+      expires_at:
+        type: datetime
+        required: false
+        description: "When nudge expires"
+      acknowledged_at:
+        type: datetime
+        required: false
+        description: "When recipient acknowledged"
+      resolved_at:
+        type: datetime
+        required: false
+        description: "When nudge was resolved"
+      dismissed_at:
+        type: datetime
+        required: false
+        description: "When nudge was dismissed"
+      dismissed_reason:
+        type: string
+        required: false
+        description: "Reason for dismissal"
+    
+  # ============================================================================
+  # NUDGE ACTION (Suggested actions for nudges)
+  # ============================================================================
+  - id: ot_nudge_action
+    name: "Nudge Action"
+    description: "Suggested action that can be taken in response to a nudge"
+    properties:
+      nudge_id:
+        type: ref
+        ref_target: ot_nudge
+        required: true
+        description: "Parent nudge"
+      action_type:
+        type: string
+        required: true
+        enum: [reassign, reschedule, scope_change, notify, ignore, custom]
+        description: "Type of suggested action"
+      description:
+        type: string
+        required: true
+        description: "Human-readable action description"
+      payload:
+        type: object
+        required: false
+        description: "JSON parameters for the action"
+      is_automatable:
+        type: boolean
+        required: true
+        default: false
+        description: "Whether action can be executed automatically"
+      was_executed:
+        type: boolean
+        required: true
+        default: false
+        description: "Whether action was executed"
+      executed_at:
+        type: datetime
+        required: false
+        description: "When action was executed"
+      executed_by_id:
+        type: ref
+        ref_target: ot_person
+        required: false
+        description: "Who executed the action"
+
+# ============================================================================
+# Indexes for Performance
+# ============================================================================
+indexes:
+  # Task indexes
+  - table: ot_task
+    columns: [project_id, status]
+    name: idx_task_project_status
+  
+  - table: ot_task
+    columns: [status, due_date]
+    name: idx_task_status_due
+  
+  - table: ot_task
+    columns: [predicted_delay_probability]
+    name: idx_task_delay_prob
+  
+  # Assignment indexes
+  - table: ot_assignment
+    columns: [person_id, planned_start, planned_end]
+    name: idx_assignment_person_dates
+  
+  - table: ot_assignment
+    columns: [task_id]
+    name: idx_assignment_task
+  
+  # Person indexes
+  - table: ot_person
+    columns: [status]
+    name: idx_person_status
+  
+  # Nudge indexes
+  - table: ot_nudge
+    columns: [recipient_id, status]
+    name: idx_nudge_recipient_status
+  
+  - table: ot_nudge
+    columns: [type, severity]
+    name: idx_nudge_type_severity
+  
+  # Sprint indexes
+  - table: ot_sprint
+    columns: [status, start_date]
+    name: idx_sprint_status_start
+
+# ============================================================================
+# Validation Rules
+# ============================================================================
+validation_rules:
+  - name: assignment_allocation_check
+    description: "Person cannot exceed 100% allocation per day"
+    # Enforced at application level
+  
+  - name: task_dependency_no_cycle
+    description: "Task dependencies cannot form cycles"
+    # Enforced at application level
+  
+  - name: sprint_capacity_check
+    description: "Sprint committed hours should not exceed capacity by > 15%"
+    # Enforced at application level with warning
+  
+  - name: leave_date_check
+    description: "Leave end date must be after start date"
+    expression: "end_date > start_date"

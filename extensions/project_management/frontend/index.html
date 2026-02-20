@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrgMind Project Management</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h1>OrgMind PM</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#portfolio" class="active" data-page="portfolio">📊 Portfolio</a></li>
+                <li><a href="#projects" data-page="projects">📁 Projects</a></li>
+                <li><a href="#resources" data-page="resources">👥 Resources</a></li>
+                <li><a href="#sprints" data-page="sprints">🔄 Sprints</a></li>
+                <li><a href="#nudges" data-page="nudges">🔔 Nudges <span class="badge" id="nudge-count">0</span></a></li>
+                <li><a href="#reports" data-page="reports">📈 Reports</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h2 id="page-title">Portfolio Dashboard</h2>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="refresh-btn">🔄 Refresh</button>
+                    <div class="user-menu">
+                        <span id="user-name">PM User</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content">
+                <!-- Portfolio Page -->
+                <div id="portfolio-page" class="page active">
+                    <div class="dashboard-cards">
+                        <div class="card metric-card">
+                            <h3>Total Projects</h3>
+                            <div class="metric" id="total-projects">-</div>
+                        </div>
+                        <div class="card metric-card warning">
+                            <h3>At Risk</h3>
+                            <div class="metric" id="at-risk-count">-</div>
+                        </div>
+                        <div class="card metric-card success">
+                            <h3>Healthy</h3>
+                            <div class="metric" id="healthy-count">-</div>
+                        </div>
+                        <div class="card metric-card danger">
+                            <h3>Overdue</h3>
+                            <div class="metric" id="overdue-count">-</div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-sections">
+                        <div class="card">
+                            <h3>Projects Overview</h3>
+                            <div class="table-container">
+                                <table id="projects-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Project</th>
+                                            <th>Status</th>
+                                            <th>Health</th>
+                                            <th>Priority</th>
+                                            <th>Progress</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Risk Distribution</h3>
+                            <div id="risk-chart" class="chart-container">
+                                <div class="chart-placeholder">Risk chart loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects Page -->
+                <div id="projects-page" class="page">
+                    <div class="filters">
+                        <input type="text" placeholder="Search projects..." class="search-input">
+                        <select class="filter-select">
+                            <option>All Status</option>
+                            <option>Active</option>
+                            <option>Planning</option>
+                            <option>Completed</option>
+                        </select>
+                    </div>
+                    <div class="projects-grid" id="projects-grid">
+                        <!-- Projects loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Resources Page -->
+                <div id="resources-page" class="page">
+                    <div class="card">
+                        <h3>Team Utilization</h3>
+                        <div class="date-filters">
+                            <input type="date" id="util-start-date">
+                            <input type="date" id="util-end-date">
+                            <button class="btn btn-primary" onclick="loadUtilization()">Apply</button>
+                        </div>
+                        <div id="utilization-heatmap" class="heatmap-container">
+                            <!-- Heatmap loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sprints Page -->
+                <div id="sprints-page" class="page">
+                    <div class="sprint-container">
+                        <div class="card">
+                            <h3>Active Sprints</h3>
+                            <div id="sprints-list"></div>
+                        </div>
+                        <div class="card" id="sprint-recommendations" style="display:none;">
+                            <h3>AI Recommendations</h3>
+                            <div id="recommendations-content"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nudges Page -->
+                <div id="nudges-page" class="page">
+                    <div class="nudges-filters">
+                        <button class="btn btn-filter active" data-filter="all">All</button>
+                        <button class="btn btn-filter" data-filter="critical">Critical</button>
+                        <button class="btn btn-filter" data-filter="warning">Warning</button>
+                        <button class="btn btn-filter" data-filter="info">Info</button>
+                    </div>
+                    <div id="nudges-list" class="nudges-list">
+                        <!-- Nudges loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Reports Page -->
+                <div id="reports-page" class="page">
+                    <div class="reports-grid">
+                        <div class="card report-card" onclick="generateReport('portfolio')">
+                            <h3>📊 Portfolio Report</h3>
+                            <p>Comprehensive portfolio analysis</p>
+                        </div>
+                        <div class="card report-card" onclick="generateReport('utilization')">
+                            <h3>👥 Utilization Report</h3>
+                            <p>Resource utilization trends</p>
+                        </div>
+                        <div class="card report-card" onclick="generateReport('skills')">
+                            <h3>🎯 Skills Gap Report</h3>
+                            <p>Organization-wide skills analysis</p>
+                        </div>
+                    </div>
+                    <div id="report-output" class="report-output"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

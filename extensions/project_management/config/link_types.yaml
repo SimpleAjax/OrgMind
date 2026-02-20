@@ -1,0 +1,507 @@
+# ============================================================================
+# OrgMind AI Project Management - Link Types Configuration
+# ============================================================================
+# This file defines all relationship types (Link Types) between entities.
+# Each link type defines the source and target object types, cardinality,
+# and any properties the link itself can have.
+# ============================================================================
+
+version: "1.0"
+description: "Link types for AI-powered Project Management on OrgMind"
+
+link_types:
+  # ============================================================================
+  # CUSTOMER RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_customer_has_project
+    name: "Customer Has Project"
+    description: "A customer has one or more projects"
+    source_type: ot_customer
+    target_type: ot_project
+    cardinality: one_to_many
+    properties: {}
+  
+  - id: lt_customer_has_contact
+    name: "Customer Has Contact"
+    description: "A customer has contact persons"
+    source_type: ot_customer
+    target_type: ot_contact_info
+    cardinality: one_to_many
+    properties: {}
+  
+  - id: lt_customer_managed_by
+    name: "Customer Managed By"
+    description: "Account manager assigned to customer"
+    source_type: ot_customer
+    target_type: ot_person
+    cardinality: many_to_one
+    properties: {}
+  
+  # ============================================================================
+  # PROJECT RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_project_has_task
+    name: "Project Has Task"
+    description: "A project contains multiple tasks"
+    source_type: ot_project
+    target_type: ot_task
+    cardinality: one_to_many
+    properties: {}
+  
+  - id: lt_project_in_sprint
+    name: "Project In Sprint"
+    description: "A project contributes tasks to a sprint (many-to-many)"
+    source_type: ot_project
+    target_type: ot_sprint
+    cardinality: many_to_many
+    properties:
+      contribution_percentage:
+        type: number
+        required: false
+        min: 0
+        max: 100
+        description: "Percentage of sprint capacity allocated to this project"
+  
+  - id: lt_project_managed_by
+    name: "Project Managed By"
+    description: "Project manager assigned to project"
+    source_type: ot_project
+    target_type: ot_person
+    cardinality: many_to_one
+    properties: {}
+  
+  - id: lt_project_depends_on
+    name: "Project Depends On"
+    description: "Project has dependency on another project"
+    source_type: ot_project
+    target_type: ot_project
+    cardinality: many_to_many
+    properties:
+      dependency_type:
+        type: string
+        required: true
+        enum: [hard, soft]
+        description: "Hard = cannot start until other completes, Soft = preferred order"
+      reason:
+        type: string
+        required: false
+        description: "Reason for dependency"
+  
+  # ============================================================================
+  # SPRINT RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_sprint_contains_task
+    name: "Sprint Contains Task"
+    description: "A sprint contains tasks via SprintTask junction"
+    source_type: ot_sprint
+    target_type: ot_sprint_task
+    cardinality: one_to_many
+    properties: {}
+  
+  - id: lt_sprint_has_participant
+    name: "Sprint Has Participant"
+    description: "People participating in a sprint"
+    source_type: ot_sprint
+    target_type: ot_person
+    cardinality: many_to_many
+    properties:
+      planned_capacity_hours:
+        type: number
+        required: false
+        description: "Hours this person is expected to contribute"
+  
+  # ============================================================================
+  # TASK RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_task_assigned_to
+    name: "Task Assigned To"
+    description: "Task assigned to person(s) via Assignment object"
+    source_type: ot_task
+    target_type: ot_assignment
+    cardinality: one_to_many
+    properties: {}
+  
+  - id: lt_task_requires_skill
+    name: "Task Requires Skill"
+    description: "Task requires specific skills with proficiency levels"
+    source_type: ot_task
+    target_type: ot_task_skill_requirement
+    cardinality: one_to_many
+    properties: {}
+  
+  - id: lt_task_blocks
+    name: "Task Blocks"
+    description: "Task blocks another task (dependency)"
+    source_type: ot_task
+    target_type: ot_task
+    cardinality: many_to_many
+    properties:
+      dependency_type:
+        type: string
+        required: true
+        enum: [hard, soft]
+        default: hard
+        description: "Hard = cannot start until complete, Soft = preferred order"
+      lag_days:
+        type: integer
+        required: true
+        default: 0
+        min: 0
+        description: "Days to wait after prerequisite completes"
+      description:
+        type: string
+        required: false
+        description: "Description of the dependency"
+  
+  - id: lt_task_related_to
+    name: "Task Related To"
+    description: "Tasks that are related but not blocking"
+    source_type: ot_task
+    target_type: ot_task
+    cardinality: many_to_many
+    properties:
+      relationship_type:
+        type: string
+        required: false
+        enum: [similar, duplicate, follow_up, reference]
+        description: "Type of relationship"
+  
+  - id: lt_task_has_subtask
+    name: "Task Has Subtask"
+    description: "Parent-child task relationship"
+    source_type: ot_task
+    target_type: ot_task
+    cardinality: one_to_many
+    properties: {}
+  
+  # ============================================================================
+  # PERSON RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_person_has_skill
+    name: "Person Has Skill"
+    description: "Person possesses a skill with proficiency level"
+    source_type: ot_person
+    target_type: ot_person_skill
+    cardinality: one_to_many
+    properties: {}
+  
+  - id: lt_person_has_leave
+    name: "Person Has Leave"
+    description: "Person has leave periods"
+    source_type: ot_person
+    target_type: ot_leave_period
+    cardinality: one_to_many
+    properties: {}
+  
+  - id: lt_person_has_productivity_profile
+    name: "Person Has Productivity Profile"
+    description: "Person has productivity metrics per project type"
+    source_type: ot_person
+    target_type: ot_productivity_profile
+    cardinality: one_to_many
+    properties: {}
+  
+  - id: lt_person_reports_to
+    name: "Person Reports To"
+    description: "Manager relationship (org chart)"
+    source_type: ot_person
+    target_type: ot_person
+    cardinality: many_to_one
+    properties: {}
+  
+  - id: lt_person_on_sprint
+    name: "Person On Sprint"
+    description: "Person participating in sprint (via sprint_participant link)"
+    source_type: ot_person
+    target_type: ot_sprint
+    cardinality: many_to_many
+    properties:
+      role:
+        type: string
+        required: false
+        enum: [developer, reviewer, observer]
+        default: developer
+        description: "Role in the sprint"
+  
+  # ============================================================================
+  # SKILL RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_skill_parent_of
+    name: "Skill Parent Of"
+    description: "Hierarchical skill relationship"
+    source_type: ot_skill
+    target_type: ot_skill
+    cardinality: one_to_many
+    properties: {}
+  
+  - id: lt_skill_related_to
+    name: "Skill Related To"
+    description: "Related skills (for recommendations)"
+    source_type: ot_skill
+    target_type: ot_skill
+    cardinality: many_to_many
+    properties:
+      relationship_strength:
+        type: number
+        required: false
+        min: 0
+        max: 1
+        description: "How strongly related (0-1)"
+  
+  # ============================================================================
+  # NUDGE RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_nudge_targets_person
+    name: "Nudge Targets Person"
+    description: "Nudge is directed at specific person"
+    source_type: ot_nudge
+    target_type: ot_person
+    cardinality: many_to_one
+    properties: {}
+  
+  - id: lt_nudge_related_to_project
+    name: "Nudge Related To Project"
+    description: "Nudge is about a specific project"
+    source_type: ot_nudge
+    target_type: ot_project
+    cardinality: many_to_one
+    properties: {}
+  
+  - id: lt_nudge_related_to_task
+    name: "Nudge Related To Task"
+    description: "Nudge is about a specific task"
+    source_type: ot_nudge
+    target_type: ot_task
+    cardinality: many_to_one
+    properties: {}
+  
+  - id: lt_nudge_related_to_person
+    name: "Nudge Related To Person"
+    description: "Nudge is about a specific person (resource)"
+    source_type: ot_nudge
+    target_type: ot_person
+    cardinality: many_to_one
+    properties:
+      relationship_type:
+        type: string
+        required: false
+        enum: [overallocated, skill_gap, burnout_risk, available]
+        description: "Why this person is mentioned in nudge"
+  
+  - id: lt_nudge_has_action
+    name: "Nudge Has Action"
+    description: "Nudge has suggested actions"
+    source_type: ot_nudge
+    target_type: ot_nudge_action
+    cardinality: one_to_many
+    properties: {}
+  
+  # ============================================================================
+  # ASSIGNMENT RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_assignment_to_person
+    name: "Assignment To Person"
+    description: "Assignment references a person"
+    source_type: ot_assignment
+    target_type: ot_person
+    cardinality: many_to_one
+    properties: {}
+  
+  - id: lt_assignment_to_task
+    name: "Assignment To Task"
+    description: "Assignment references a task"
+    source_type: ot_assignment
+    target_type: ot_task
+    cardinality: many_to_one
+    properties: {}
+  
+  # ============================================================================
+  # SPRINT TASK RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_sprint_task_to_sprint
+    name: "Sprint Task To Sprint"
+    description: "SprintTask references Sprint"
+    source_type: ot_sprint_task
+    target_type: ot_sprint
+    cardinality: many_to_one
+    properties: {}
+  
+  - id: lt_sprint_task_to_task
+    name: "Sprint Task To Task"
+    description: "SprintTask references Task"
+    source_type: ot_sprint_task
+    target_type: ot_task
+    cardinality: many_to_one
+    properties: {}
+  
+  # ============================================================================
+  # TASK SKILL REQUIREMENT RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_task_skill_req_to_task
+    name: "Task Skill Req To Task"
+    description: "TaskSkillRequirement references Task"
+    source_type: ot_task_skill_requirement
+    target_type: ot_task
+    cardinality: many_to_one
+    properties: {}
+  
+  - id: lt_task_skill_req_to_skill
+    name: "Task Skill Req To Skill"
+    description: "TaskSkillRequirement references Skill"
+    source_type: ot_task_skill_requirement
+    target_type: ot_skill
+    cardinality: many_to_one
+    properties: {}
+  
+  # ============================================================================
+  # PERSON SKILL RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_person_skill_to_person
+    name: "Person Skill To Person"
+    description: "PersonSkill references Person"
+    source_type: ot_person_skill
+    target_type: ot_person
+    cardinality: many_to_one
+    properties: {}
+  
+  - id: lt_person_skill_to_skill
+    name: "Person Skill To Skill"
+    description: "PersonSkill references Skill"
+    source_type: ot_person_skill
+    target_type: ot_skill
+    cardinality: many_to_one
+    properties: {}
+  
+  # ============================================================================
+  # PRODUCTIVITY PROFILE RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_productivity_profile_to_person
+    name: "Productivity Profile To Person"
+    description: "ProductivityProfile references Person"
+    source_type: ot_productivity_profile
+    target_type: ot_person
+    cardinality: many_to_one
+    properties: {}
+  
+  # ============================================================================
+  # LEAVE PERIOD RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_leave_period_to_person
+    name: "Leave Period To Person"
+    description: "LeavePeriod references Person"
+    source_type: ot_leave_period
+    target_type: ot_person
+    cardinality: many_to_one
+    properties: {}
+  
+  - id: lt_leave_approved_by
+    name: "Leave Approved By"
+    description: "Leave approved by manager"
+    source_type: ot_leave_period
+    target_type: ot_person
+    cardinality: many_to_one
+    properties: {}
+  
+  # ============================================================================
+  # NUDGE ACTION RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_nudge_action_to_nudge
+    name: "Nudge Action To Nudge"
+    description: "NudgeAction references Nudge"
+    source_type: ot_nudge_action
+    target_type: ot_nudge
+    cardinality: many_to_one
+    properties: {}
+  
+  - id: lt_nudge_action_executed_by
+    name: "Nudge Action Executed By"
+    description: "Who executed the nudge action"
+    source_type: ot_nudge_action
+    target_type: ot_person
+    cardinality: many_to_one
+    properties: {}
+  
+  # ============================================================================
+  # CONTACT INFO RELATIONSHIPS
+  # ============================================================================
+  
+  - id: lt_contact_info_to_customer
+    name: "Contact Info To Customer"
+    description: "ContactInfo references Customer"
+    source_type: ot_contact_info
+    target_type: ot_customer
+    cardinality: many_to_one
+    properties: {}
+
+# ============================================================================
+# Graph Traversal Indexes (Neo4j)
+# ============================================================================
+# These are recommendations for Neo4j graph indexes
+
+graph_indexes:
+  # Project traversal
+  - label: ot_project
+    property: id
+    name: idx_project_id
+  
+  # Task traversal  
+  - label: ot_task
+    property: id
+    name: idx_task_id
+  
+  - label: ot_task
+    property: status
+    name: idx_task_status
+  
+  # Person traversal
+  - label: ot_person
+    property: id
+    name: idx_person_id
+  
+  # Dependency traversal (critical for impact analysis)
+  - relationship: lt_task_blocks
+    property: dependency_type
+    name: idx_blocks_type
+  
+  # Skill traversal
+  - label: ot_skill
+    property: id
+    name: idx_skill_id
+
+# ============================================================================
+# Link Validation Rules
+# ============================================================================
+validation_rules:
+  - name: no_self_blocking
+    description: "A task cannot block itself"
+    applies_to: lt_task_blocks
+    condition: "source_id != target_id"
+  
+  - name: no_circular_dependencies
+    description: "Task dependencies cannot form cycles"
+    applies_to: lt_task_blocks
+    # Enforced at application level via graph cycle detection
+  
+  - name: valid_date_range
+    description: "Assignment end must be after start"
+    applies_to: lt_task_assigned_to
+    # Enforced via Assignment object validation
+  
+  - name: valid_allocation
+    description: "Allocation must be between 0 and 100"
+    applies_to: lt_task_assigned_to
+    # Enforced via Assignment object validation

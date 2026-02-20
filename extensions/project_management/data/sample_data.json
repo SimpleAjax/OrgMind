@@ -1,0 +1,665 @@
+{
+  "metadata": {
+    "name": "Project Management Sample Data",
+    "version": "1.0",
+    "description": "Realistic sample data for testing and demonstrations",
+    "created_at": "2026-02-20",
+    "scenarios": [
+      "Sick leave impact",
+      "Scope change analysis",
+      "Sprint planning",
+      "Skill matching",
+      "Resource conflict detection"
+    ]
+  },
+  "customers": [
+    {
+      "id": "cust_techcorp",
+      "name": "TechCorp Industries",
+      "tier": "tier_1",
+      "contract_value": 750000,
+      "sla_level": "enterprise",
+      "contact_info": {
+        "primary_contact": "Sarah Johnson",
+        "email": "sarah.johnson@techcorp.com",
+        "phone": "+1-555-0101"
+      },
+      "industry": "Technology",
+      "notes": "Premium customer with multiple concurrent projects"
+    },
+    {
+      "id": "cust_innovate",
+      "name": "Innovate Solutions LLC",
+      "tier": "tier_2",
+      "contract_value": 350000,
+      "sla_level": "premium",
+      "contact_info": {
+        "primary_contact": "Michael Chen",
+        "email": "m.chen@innovatesolutions.com",
+        "phone": "+1-555-0102"
+      },
+      "industry": "Consulting",
+      "notes": "Growing customer with focus on digital transformation"
+    },
+    {
+      "id": "cust_startup",
+      "name": "NextGen Startup",
+      "tier": "tier_3",
+      "contract_value": 75000,
+      "sla_level": "standard",
+      "contact_info": {
+        "primary_contact": "Emily Rodriguez",
+        "email": "emily@nextgen.io",
+        "phone": "+1-555-0103"
+      },
+      "industry": "Fintech",
+      "notes": "Early-stage startup with limited budget but high growth potential"
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj_enterprise_platform",
+      "name": "Enterprise Platform Migration",
+      "description": "Migrate legacy systems to modern cloud-native platform",
+      "status": "active",
+      "customer_id": "cust_techcorp",
+      "type": "fixed_price",
+      "planned_start": "2026-01-15",
+      "planned_end": "2026-06-30",
+      "budget_hours": 1200,
+      "hourly_rate": 150,
+      "business_value_score": 95,
+      "strategic_importance": 90,
+      "risk_score": 35,
+      "priority_score": 88,
+      "pm_id": "person_pm_sarah"
+    },
+    {
+      "id": "proj_mobile_app",
+      "name": "Mobile Banking App",
+      "description": "Develop iOS and Android banking application",
+      "status": "active",
+      "customer_id": "cust_innovate",
+      "type": "time_material",
+      "planned_start": "2026-02-01",
+      "planned_end": "2026-05-15",
+      "budget_hours": 800,
+      "hourly_rate": 125,
+      "business_value_score": 80,
+      "strategic_importance": 75,
+      "risk_score": 25,
+      "priority_score": 72,
+      "pm_id": "person_pm_sarah"
+    },
+    {
+      "id": "proj_analytics_dashboard",
+      "name": "Analytics Dashboard",
+      "description": "Real-time analytics and reporting dashboard",
+      "status": "active",
+      "customer_id": "cust_startup",
+      "type": "time_material",
+      "planned_start": "2026-02-15",
+      "planned_end": "2026-04-30",
+      "budget_hours": 320,
+      "hourly_rate": 100,
+      "business_value_score": 70,
+      "strategic_importance": 65,
+      "risk_score": 20,
+      "priority_score": 58,
+      "pm_id": "person_pm_james"
+    },
+    {
+      "id": "proj_ecommerce",
+      "name": "E-commerce Platform",
+      "description": "Build scalable e-commerce solution with payment integration",
+      "status": "planning",
+      "customer_id": "cust_techcorp",
+      "type": "fixed_price",
+      "planned_start": "2026-03-01",
+      "planned_end": "2026-08-31",
+      "budget_hours": 960,
+      "hourly_rate": 140,
+      "business_value_score": 90,
+      "strategic_importance": 85,
+      "risk_score": 40,
+      "priority_score": 78,
+      "pm_id": "person_pm_james"
+    },
+    {
+      "id": "proj_ai_integration",
+      "name": "AI-Powered Recommendation Engine",
+      "description": "Implement ML-based product recommendations",
+      "status": "active",
+      "customer_id": "cust_innovate",
+      "type": "time_material",
+      "planned_start": "2026-01-20",
+      "planned_end": "2026-04-20",
+      "budget_hours": 480,
+      "hourly_rate": 135,
+      "business_value_score": 85,
+      "strategic_importance": 80,
+      "risk_score": 45,
+      "priority_score": 70,
+      "pm_id": "person_pm_sarah"
+    }
+  ],
+  "people": [
+    {
+      "id": "person_pm_sarah",
+      "name": "Sarah Williams",
+      "email": "sarah.w@company.com",
+      "role": "project_manager",
+      "status": "active",
+      "employment_type": "full_time",
+      "working_hours_per_day": 8,
+      "default_availability_percent": 90,
+      "hourly_rate": 120,
+      "skills": [
+        {"skill_id": "skill_pm", "proficiency": 5, "years_experience": 8},
+        {"skill_id": "skill_agile", "proficiency": 5, "years_experience": 6},
+        {"skill_id": "skill_jira", "proficiency": 4, "years_experience": 5}
+      ]
+    },
+    {
+      "id": "person_pm_james",
+      "name": "James Anderson",
+      "email": "james.a@company.com",
+      "role": "project_manager",
+      "status": "active",
+      "employment_type": "full_time",
+      "working_hours_per_day": 8,
+      "default_availability_percent": 100,
+      "hourly_rate": 110,
+      "skills": [
+        {"skill_id": "skill_pm", "proficiency": 4, "years_experience": 5},
+        {"skill_id": "skill_agile", "proficiency": 4, "years_experience": 4},
+        {"skill_id": "skill_scrum", "proficiency": 5, "years_experience": 4}
+      ]
+    },
+    {
+      "id": "person_dev_alice",
+      "name": "Alice Chen",
+      "email": "alice.c@company.com",
+      "role": "senior_developer",
+      "status": "active",
+      "employment_type": "full_time",
+      "working_hours_per_day": 8,
+      "default_availability_percent": 100,
+      "hourly_rate": 95,
+      "skills": [
+        {"skill_id": "skill_python", "proficiency": 5, "years_experience": 7},
+        {"skill_id": "skill_django", "proficiency": 5, "years_experience": 5},
+        {"skill_id": "skill_react", "proficiency": 4, "years_experience": 3},
+        {"skill_id": "skill_postgres", "proficiency": 4, "years_experience": 4},
+        {"skill_id": "skill_docker", "proficiency": 4, "years_experience": 3}
+      ]
+    },
+    {
+      "id": "person_dev_bob",
+      "name": "Bob Martinez",
+      "email": "bob.m@company.com",
+      "role": "senior_developer",
+      "status": "active",
+      "employment_type": "full_time",
+      "working_hours_per_day": 8,
+      "default_availability_percent": 100,
+      "hourly_rate": 90,
+      "skills": [
+        {"skill_id": "skill_react", "proficiency": 5, "years_experience": 6},
+        {"skill_id": "skill_typescript", "proficiency": 5, "years_experience": 4},
+        {"skill_id": "skill_nodejs", "proficiency": 4, "years_experience": 4},
+        {"skill_id": "skill_aws", "proficiency": 3, "years_experience": 2}
+      ]
+    },
+    {
+      "id": "person_dev_carol",
+      "name": "Carol Thompson",
+      "email": "carol.t@company.com",
+      "role": "developer",
+      "status": "active",
+      "employment_type": "full_time",
+      "working_hours_per_day": 8,
+      "default_availability_percent": 80,
+      "hourly_rate": 75,
+      "skills": [
+        {"skill_id": "skill_python", "proficiency": 3, "years_experience": 2},
+        {"skill_id": "skill_react", "proficiency": 3, "years_experience": 2},
+        {"skill_id": "skill_css", "proficiency": 4, "years_experience": 3}
+      ]
+    },
+    {
+      "id": "person_dev_david",
+      "name": "David Kim",
+      "email": "david.k@company.com",
+      "role": "ml_engineer",
+      "status": "active",
+      "employment_type": "full_time",
+      "working_hours_per_day": 8,
+      "default_availability_percent": 100,
+      "hourly_rate": 100,
+      "skills": [
+        {"skill_id": "skill_python", "proficiency": 5, "years_experience": 5},
+        {"skill_id": "skill_tensorflow", "proficiency": 4, "years_experience": 3},
+        {"skill_id": "skill_pytorch", "proficiency": 4, "years_experience": 2},
+        {"skill_id": "skill_datascience", "proficiency": 5, "years_experience": 4}
+      ]
+    },
+    {
+      "id": "person_qa_emma",
+      "name": "Emma Wilson",
+      "email": "emma.w@company.com",
+      "role": "qa_engineer",
+      "status": "active",
+      "employment_type": "full_time",
+      "working_hours_per_day": 8,
+      "default_availability_percent": 100,
+      "hourly_rate": 70,
+      "skills": [
+        {"skill_id": "skill_selenium", "proficiency": 5, "years_experience": 5},
+        {"skill_id": "skill_cypress", "proficiency": 4, "years_experience": 2},
+        {"skill_id": "skill_python", "proficiency": 3, "years_experience": 3}
+      ]
+    },
+    {
+      "id": "person_design_frank",
+      "name": "Frank Johnson",
+      "email": "frank.j@company.com",
+      "role": "ux_designer",
+      "status": "active",
+      "employment_type": "part_time",
+      "working_hours_per_day": 6,
+      "default_availability_percent": 75,
+      "hourly_rate": 85,
+      "skills": [
+        {"skill_id": "skill_figma", "proficiency": 5, "years_experience": 6},
+        {"skill_id": "skill_ux", "proficiency": 5, "years_experience": 7},
+        {"skill_id": "skill_css", "proficiency": 4, "years_experience": 5}
+      ]
+    }
+  ],
+  "skills": [
+    {"id": "skill_python", "name": "Python", "category": "technical"},
+    {"id": "skill_django", "name": "Django", "category": "technical"},
+    {"id": "skill_react", "name": "React", "category": "technical"},
+    {"id": "skill_typescript", "name": "TypeScript", "category": "technical"},
+    {"id": "skill_nodejs", "name": "Node.js", "category": "technical"},
+    {"id": "skill_postgres", "name": "PostgreSQL", "category": "technical"},
+    {"id": "skill_docker", "name": "Docker", "category": "technical"},
+    {"id": "skill_aws", "name": "AWS", "category": "technical"},
+    {"id": "skill_tensorflow", "name": "TensorFlow", "category": "technical"},
+    {"id": "skill_pytorch", "name": "PyTorch", "category": "technical"},
+    {"id": "skill_datascience", "name": "Data Science", "category": "technical"},
+    {"id": "skill_selenium", "name": "Selenium", "category": "technical"},
+    {"id": "skill_cypress", "name": "Cypress", "category": "technical"},
+    {"id": "skill_figma", "name": "Figma", "category": "design"},
+    {"id": "skill_ux", "name": "UX Design", "category": "design"},
+    {"id": "skill_css", "name": "CSS", "category": "design"},
+    {"id": "skill_pm", "name": "Project Management", "category": "management"},
+    {"id": "skill_agile", "name": "Agile", "category": "management"},
+    {"id": "skill_scrum", "name": "Scrum", "category": "management"},
+    {"id": "skill_jira", "name": "Jira", "category": "management"}
+  ],
+  "sprints": [
+    {
+      "id": "sprint_current",
+      "name": "Sprint 12 - March 2026",
+      "start_date": "2026-03-02",
+      "end_date": "2026-03-15",
+      "status": "active",
+      "total_capacity_hours": 560,
+      "committed_hours": 480,
+      "goals": [
+        "Complete API integration for Enterprise Platform",
+        "Deploy mobile app v1.2 to TestFlight",
+        "Finalize analytics dashboard MVP"
+      ],
+      "participants": [
+        {"person_id": "person_dev_alice", "planned_capacity_hours": 80},
+        {"person_id": "person_dev_bob", "planned_capacity_hours": 80},
+        {"person_id": "person_dev_carol", "planned_capacity_hours": 64},
+        {"person_id": "person_dev_david", "planned_capacity_hours": 80},
+        {"person_id": "person_qa_emma", "planned_capacity_hours": 80},
+        {"person_id": "person_design_frank", "planned_capacity_hours": 48}
+      ],
+      "project_ids": ["proj_enterprise_platform", "proj_mobile_app", "proj_analytics_dashboard"]
+    },
+    {
+      "id": "sprint_next",
+      "name": "Sprint 13 - Late March 2026",
+      "start_date": "2026-03-16",
+      "end_date": "2026-03-29",
+      "status": "planning",
+      "total_capacity_hours": 560,
+      "committed_hours": 0,
+      "goals": [
+        "Begin e-commerce platform development",
+        "Complete ML model training",
+        "Address technical debt"
+      ],
+      "participants": [
+        {"person_id": "person_dev_alice", "planned_capacity_hours": 80},
+        {"person_id": "person_dev_bob", "planned_capacity_hours": 80},
+        {"person_id": "person_dev_carol", "planned_capacity_hours": 64},
+        {"person_id": "person_dev_david", "planned_capacity_hours": 80},
+        {"person_id": "person_qa_emma", "planned_capacity_hours": 80},
+        {"person_id": "person_design_frank", "planned_capacity_hours": 48}
+      ],
+      "project_ids": ["proj_enterprise_platform", "proj_ai_integration", "proj_ecommerce"]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task_api_integration",
+      "title": "Integrate Third-Party APIs",
+      "description": "Connect with payment gateway and shipping providers",
+      "project_id": "proj_enterprise_platform",
+      "type": "feature",
+      "status": "in_progress",
+      "priority": "high",
+      "estimated_hours": 40,
+      "actual_hours": 24,
+      "due_date": "2026-03-10",
+      "assignee_id": "person_dev_alice",
+      "allocation_percent": 60,
+      "predicted_delay_probability": 0.15,
+      "required_skills": [
+        {"skill_id": "skill_python", "min_proficiency": 4, "is_mandatory": true},
+        {"skill_id": "skill_django", "min_proficiency": 3, "is_mandatory": true}
+      ],
+      "dependencies": [],
+      "sprint_id": "sprint_current"
+    },
+    {
+      "id": "task_database_optimization",
+      "title": "Database Query Optimization",
+      "description": "Optimize slow queries and add proper indexing",
+      "project_id": "proj_enterprise_platform",
+      "type": "technical_debt",
+      "status": "todo",
+      "priority": "high",
+      "estimated_hours": 24,
+      "actual_hours": 0,
+      "due_date": "2026-03-12",
+      "assignee_id": "person_dev_alice",
+      "allocation_percent": 40,
+      "predicted_delay_probability": 0.25,
+      "required_skills": [
+        {"skill_id": "skill_python", "min_proficiency": 4, "is_mandatory": true},
+        {"skill_id": "skill_postgres", "min_proficiency": 4, "is_mandatory": true}
+      ],
+      "dependencies": ["task_api_integration"],
+      "sprint_id": "sprint_current"
+    },
+    {
+      "id": "task_mobile_ui",
+      "title": "Implement Mobile UI Screens",
+      "description": "Create all screens for mobile banking flow",
+      "project_id": "proj_mobile_app",
+      "type": "feature",
+      "status": "in_progress",
+      "priority": "high",
+      "estimated_hours": 48,
+      "actual_hours": 32,
+      "due_date": "2026-03-14",
+      "assignee_id": "person_dev_bob",
+      "allocation_percent": 75,
+      "predicted_delay_probability": 0.35,
+      "required_skills": [
+        {"skill_id": "skill_react", "min_proficiency": 4, "is_mandatory": true},
+        {"skill_id": "skill_typescript", "min_proficiency": 3, "is_mandatory": true}
+      ],
+      "dependencies": [],
+      "sprint_id": "sprint_current"
+    },
+    {
+      "id": "task_auth_flow",
+      "title": "Authentication Flow Implementation",
+      "description": "Implement login, logout, and password reset",
+      "project_id": "proj_mobile_app",
+      "type": "feature",
+      "status": "todo",
+      "priority": "high",
+      "estimated_hours": 32,
+      "actual_hours": 0,
+      "due_date": "2026-03-15",
+      "assignee_id": "person_dev_bob",
+      "allocation_percent": 25,
+      "predicted_delay_probability": 0.20,
+      "required_skills": [
+        {"skill_id": "skill_react", "min_proficiency": 3, "is_mandatory": true},
+        {"skill_id": "skill_nodejs", "min_proficiency": 3, "is_mandatory": true}
+      ],
+      "dependencies": ["task_mobile_ui"],
+      "sprint_id": "sprint_current"
+    },
+    {
+      "id": "task_analytics_charts",
+      "title": "Create Analytics Charts",
+      "description": "Implement visualization components for dashboard",
+      "project_id": "proj_analytics_dashboard",
+      "type": "feature",
+      "status": "in_progress",
+      "priority": "medium",
+      "estimated_hours": 32,
+      "actual_hours": 16,
+      "due_date": "2026-03-13",
+      "assignee_id": "person_dev_carol",
+      "allocation_percent": 50,
+      "predicted_delay_probability": 0.30,
+      "required_skills": [
+        {"skill_id": "skill_react", "min_proficiency": 3, "is_mandatory": true},
+        {"skill_id": "skill_css", "min_proficiency": 3, "is_mandatory": false}
+      ],
+      "dependencies": [],
+      "sprint_id": "sprint_current"
+    },
+    {
+      "id": "task_ml_model",
+      "title": "Train Recommendation Model",
+      "description": "Build and train collaborative filtering model",
+      "project_id": "proj_ai_integration",
+      "type": "feature",
+      "status": "in_progress",
+      "priority": "high",
+      "estimated_hours": 64,
+      "actual_hours": 40,
+      "due_date": "2026-03-20",
+      "assignee_id": "person_dev_david",
+      "allocation_percent": 80,
+      "predicted_delay_probability": 0.40,
+      "required_skills": [
+        {"skill_id": "skill_python", "min_proficiency": 4, "is_mandatory": true},
+        {"skill_id": "skill_tensorflow", "min_proficiency": 3, "is_mandatory": true}
+      ],
+      "dependencies": [],
+      "sprint_id": "sprint_current"
+    },
+    {
+      "id": "task_qa_testing",
+      "title": "Regression Testing Suite",
+      "description": "Complete regression testing for current sprint",
+      "project_id": "proj_enterprise_platform",
+      "type": "testing",
+      "status": "todo",
+      "priority": "medium",
+      "estimated_hours": 24,
+      "actual_hours": 0,
+      "due_date": "2026-03-14",
+      "assignee_id": "person_qa_emma",
+      "allocation_percent": 30,
+      "predicted_delay_probability": 0.10,
+      "required_skills": [
+        {"skill_id": "skill_selenium", "min_proficiency": 3, "is_mandatory": true}
+      ],
+      "dependencies": ["task_api_integration"],
+      "sprint_id": "sprint_current"
+    },
+    {
+      "id": "task_ui_design",
+      "title": "Design System Updates",
+      "description": "Update component library with new design tokens",
+      "project_id": "proj_ecommerce",
+      "type": "design",
+      "status": "in_progress",
+      "priority": "medium",
+      "estimated_hours": 32,
+      "actual_hours": 20,
+      "due_date": "2026-03-15",
+      "assignee_id": "person_design_frank",
+      "allocation_percent": 50,
+      "predicted_delay_probability": 0.20,
+      "required_skills": [
+        {"skill_id": "skill_figma", "min_proficiency": 4, "is_mandatory": true},
+        {"skill_id": "skill_ux", "min_proficiency": 3, "is_mandatory": true}
+      ],
+      "dependencies": [],
+      "sprint_id": "sprint_current"
+    },
+    {
+      "id": "task_payment_gateway",
+      "title": "Payment Gateway Integration",
+      "description": "Integrate Stripe payment processing",
+      "project_id": "proj_ecommerce",
+      "type": "feature",
+      "status": "backlog",
+      "priority": "high",
+      "estimated_hours": 40,
+      "actual_hours": 0,
+      "due_date": "2026-04-15",
+      "assignee_id": null,
+      "allocation_percent": 0,
+      "predicted_delay_probability": 0.50,
+      "required_skills": [
+        {"skill_id": "skill_python", "min_proficiency": 4, "is_mandatory": true}
+      ],
+      "dependencies": [],
+      "sprint_id": null
+    },
+    {
+      "id": "task_search_implementation",
+      "title": "Advanced Search Implementation",
+      "description": "Implement Elasticsearch for product search",
+      "project_id": "proj_ecommerce",
+      "type": "feature",
+      "status": "backlog",
+      "priority": "medium",
+      "estimated_hours": 48,
+      "actual_hours": 0,
+      "due_date": "2026-04-30",
+      "assignee_id": null,
+      "allocation_percent": 0,
+      "predicted_delay_probability": 0.45,
+      "required_skills": [
+        {"skill_id": "skill_python", "min_proficiency": 3, "is_mandatory": true},
+        {"skill_id": "skill_docker", "min_proficiency": 2, "is_mandatory": false}
+      ],
+      "dependencies": [],
+      "sprint_id": null
+    }
+  ],
+  "leave_periods": [
+    {
+      "id": "leave_alice_march",
+      "person_id": "person_dev_alice",
+      "leave_type": "vacation",
+      "start_date": "2026-03-16",
+      "end_date": "2026-03-20",
+      "approval_status": "approved",
+      "reason": "Scheduled vacation"
+    }
+  ],
+  "productivity_profiles": [
+    {
+      "person_id": "person_dev_alice",
+      "project_type": "fixed_price",
+      "velocity_factor": 1.15,
+      "estimation_accuracy": 0.95,
+      "tasks_completed_count": 45,
+      "avg_task_completion_hours": 12.5,
+      "last_updated": "2026-02-15T00:00:00"
+    },
+    {
+      "person_id": "person_dev_alice",
+      "project_type": "time_material",
+      "velocity_factor": 1.10,
+      "estimation_accuracy": 0.92,
+      "tasks_completed_count": 32,
+      "avg_task_completion_hours": 14.2,
+      "last_updated": "2026-02-15T00:00:00"
+    },
+    {
+      "person_id": "person_dev_bob",
+      "project_type": "time_material",
+      "velocity_factor": 0.95,
+      "estimation_accuracy": 0.88,
+      "tasks_completed_count": 28,
+      "avg_task_completion_hours": 16.8,
+      "last_updated": "2026-02-15T00:00:00"
+    },
+    {
+      "person_id": "person_dev_david",
+      "project_type": "time_material",
+      "velocity_factor": 1.05,
+      "estimation_accuracy": 0.90,
+      "tasks_completed_count": 15,
+      "avg_task_completion_hours": 22.4,
+      "last_updated": "2026-02-15T00:00:00"
+    }
+  ],
+  "demo_scenarios": {
+    "sick_leave_impact": {
+      "name": "Sick Leave Impact Analysis",
+      "description": "Simulate Alice calling in sick and see real-time replanning",
+      "trigger": "Add leave period for person_dev_alice starting today for 3 days",
+      "expected_outcomes": [
+        "Impact report showing affected tasks",
+        "Suggested alternatives (Bob for API work)",
+        "Timeline adjustment for dependent tasks",
+        "Nudge sent to PM Sarah"
+      ]
+    },
+    "scope_change": {
+      "name": "Scope Change Impact",
+      "description": "Add 3 new tasks to Enterprise Platform and analyze impact",
+      "trigger": "Add 3 new tasks to proj_enterprise_platform",
+      "expected_outcomes": [
+        "New end date calculation",
+        "Resource conflict detection",
+        "Cost impact: ~$15,000 additional",
+        "Recommendation to extend timeline or add resources"
+      ]
+    },
+    "sprint_planning": {
+      "name": "AI-Assisted Sprint Planning",
+      "description": "Generate recommendations for next sprint",
+      "trigger": "Run sprint planner on sprint_next",
+      "expected_outcomes": [
+        "Optimal task selection based on priority and capacity",
+        "Load balanced across team members",
+        "Risk score for sprint",
+        "85% capacity utilization target"
+      ]
+    },
+    "skill_matching": {
+      "name": "Skill-Based Task Assignment",
+      "description": "Find best person for Payment Gateway Integration task",
+      "trigger": "Run skill matcher on task_payment_gateway",
+      "expected_outcomes": [
+        "Alice ranked #1 (Python expert)",
+        "David ranked #2",
+        "Carol not qualified (skill gap)",
+        "Training suggestion for Carol"
+      ]
+    },
+    "resource_conflict": {
+      "name": "Resource Conflict Detection",
+      "description": "Detect overallocation when assigning multiple tasks",
+      "trigger": "Assign additional tasks to Bob bringing total to 120%",
+      "expected_outcomes": [
+        "Overallocation alert",
+        "Suggested reassignments",
+        "Timeline adjustment options"
+      ]
+    }
+  }
+}

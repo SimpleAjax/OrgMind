@@ -1,0 +1,713 @@
+# ============================================================================
+# OrgMind AI Project Management - Triggers Configuration
+# ============================================================================
+# This file defines event-driven triggers and scheduled jobs that power
+# the reactive and proactive behaviors of the AI project management system.
+#
+# Triggers use JSONLogic for conditions: https://jsonlogic.com/
+# ============================================================================
+
+version: "1.0"
+description: "Triggers for AI-powered Project Management on OrgMind"
+
+# ============================================================================
+# EVENT-DRIVEN TRIGGERS
+# These fire when specific events occur in the system
+# ============================================================================
+
+event_triggers:
+  # ==========================================================================
+  # TASK LIFECYCLE TRIGGERS
+  # ==========================================================================
+  
+  - id: rule_task_status_changed
+    name: "Task Status Changed Handler"
+    description: "Handle task status changes - update dependencies, velocity"
+    type: trigger
+    enabled: true
+    priority: 100
+    debounce_ms: 1000
+    trigger_config:
+      event_type: object.updated
+      object_type: ot_task
+      watch_fields: [status]
+    condition:
+      and:
+        - has: [{ var: changes.status }, { var: changes.status.new }]
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_handle_task_status_change
+          parameters:
+            task_id: "{{object.id}}"
+            old_status: "{{changes.status.old}}"
+            new_status: "{{changes.status.new}}"
+    
+  - id: rule_task_created_critical
+    name: "Critical Task Created Alert"
+    description: "Alert when a critical priority task is created"
+    type: trigger
+    enabled: true
+    priority: 150
+    debounce_ms: 0
+    trigger_config:
+      event_type: object.created
+      object_type: ot_task
+    condition:
+      "==": [{ var: object.data.priority }, critical]
+    actions:
+      - type: create_object
+        config:
+          object_type: ot_nudge
+          data:
+            type: risk
+            severity: warning
+            title: "Critical task created: {{object.data.title}}"
+            description: "A critical priority task has been created and may need immediate attention."
+            recipient_id: "{{object.data.pm_id}}"
+            related_task_id: "{{object.id}}"
+      - type: notify
+        config:
+          channels: [slack, in_app]
+          template: critical_task_created
+          targets: ["{{object.data.pm_id}}"]
+    
+  - id: rule_task_overdue
+    name: "Task Overdue Alert"
+    description: "Create nudge when task passes due date"
+    type: trigger
+    enabled: true
+    priority: 120
+    debounce_ms: 3600000  # 1 hour - don't spam
+    trigger_config:
+      event_type: schedule
+      cron: "0 9 * * *"  # Daily at 9 AM
+    condition:
+      # Condition checked in the action - queries for overdue tasks
+      "==": [true, true]
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_check_overdue_tasks
+          parameters: {}
+  
+  - id: rule_task_blocked
+    name: "Task Blocked Alert"
+    description: "Alert when task becomes blocked"
+    type: trigger
+    enabled: true
+    priority: 130
+    debounce_ms: 5000
+    trigger_config:
+      event_type: object.updated
+      object_type: ot_task
+      watch_fields: [status]
+    condition:
+      and:
+        - "==": [{ var: object.data.status }, blocked]
+        - "!=": [{ var: changes.status.old }, blocked]
+    actions:
+      - type: create_object
+        config:
+          object_type: ot_nudge
+          data:
+            type: conflict
+            severity: warning
+            title: "Task blocked: {{object.data.title}}"
+            description: "A task has become blocked and may affect dependent tasks."
+            recipient_id: "{{object.data.pm_id}}"
+            related_task_id: "{{object.id}}"
+  
+  # ==========================================================================
+  # LEAVE MANAGEMENT TRIGGERS
+  # ==========================================================================
+  
+  - id: rule_leave_approved
+    name: "Leave Approved - Impact Analysis"
+    description: "Trigger impact analysis when leave is approved"
+    type: trigger
+    enabled: true
+    priority: 140
+    debounce_ms: 0
+    trigger_config:
+      event_type: object.updated
+      object_type: ot_leave_period
+      watch_fields: [approval_status]
+    condition:
+      and:
+        - "==": [{ var: object.data.approval_status }, approved]
+        - "!=": [{ var: changes.approval_status.old }, approved]
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_analyze_leave_impact
+          parameters:
+            person_id: "{{object.data.person_id}}"
+            leave_start: "{{object.data.start_date}}"
+            leave_end: "{{object.data.end_date}}"
+            leave_id: "{{object.id}}"
+      - type: notify
+        config:
+          channels: [in_app, email]
+          template: leave_approved_with_impact
+          targets: ["{{object.data.person_id}}", "{{object.data.approved_by_id}}"]
+  
+  - id: rule_leave_approved_nudge
+    name: "Leave Approved - PM Nudge"
+    description: "Notify PM about leave and affected tasks"
+    type: trigger
+    enabled: true
+    priority: 130
+    debounce_ms: 0
+    trigger_config:
+      event_type: action.completed
+      action_type: at_analyze_leave_impact
+    condition:
+      has: [{ var: action.result.affected_tasks }]
+    actions:
+      - type: create_object
+        config:
+          object_type: ot_nudge
+          data:
+            type: risk
+            severity: "{{action.result.impact_level == 'high' ? 'critical' : 'warning'}}"
+            title: "Leave impact: {{action.result.person_name}} ({{action.result.affected_tasks.length}} tasks affected)"
+            description: "{{action.result.summary}}"
+            context_data: "{{action.result}}"
+  
+  # ==========================================================================
+  # PROJECT SCOPE TRIGGERS
+  # ==========================================================================
+  
+  - id: rule_project_scope_changed
+    name: "Project Scope Changed"
+    description: "Recalculate priorities and rebalance when project scope changes"
+    type: trigger
+    enabled: true
+    priority: 110
+    debounce_ms: 5000
+    trigger_config:
+      event_type: object.updated
+      object_type: ot_project
+      watch_fields: [budget_hours, planned_end, status]
+    condition:
+      or:
+        - has: [{ var: changes.budget_hours }]
+        - has: [{ var: changes.planned_end }]
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_analyze_scope_change_impact
+          parameters:
+            project_id: "{{object.id}}"
+            changes: "{{changes}}"
+      - type: invoke_action
+        config:
+          action_type: at_recalculate_project_priority
+          parameters:
+            project_id: "{{object.id}}"
+      - type: notify
+        config:
+          channels: [in_app]
+          template: project_scope_changed
+          targets: ["{{object.data.pm_id}}"]
+  
+  # ==========================================================================
+  # ASSIGNMENT TRIGGERS
+  # ==========================================================================
+  
+  - id: rule_assignment_created
+    name: "Assignment Created - Check Conflicts"
+    description: "Check for conflicts when new assignment is created"
+    type: trigger
+    enabled: true
+    priority: 120
+    debounce_ms: 1000
+    trigger_config:
+      event_type: object.created
+      object_type: ot_assignment
+    condition:
+      "==": [{ var: object.data.status }, planned]
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_check_assignment_conflicts
+          parameters:
+            assignment_id: "{{object.id}}"
+      - type: invoke_action
+        config:
+          action_type: at_validate_skill_match
+          parameters:
+            assignment_id: "{{object.id}}"
+  
+  - id: rule_assignment_conflict_detected
+    name: "Assignment Conflict - Create Nudge"
+    description: "Create nudge when assignment conflict is detected"
+    type: trigger
+    enabled: true
+    priority: 130
+    debounce_ms: 0
+    trigger_config:
+      event_type: action.completed
+      action_type: at_check_assignment_conflicts
+    condition:
+      has: [{ var: action.result.conflicts }]
+    actions:
+      - type: create_object
+        config:
+          object_type: ot_nudge
+          data:
+            type: conflict
+            severity: warning
+            title: "Resource conflict detected for {{action.result.person_name}}"
+            description: "{{action.result.conflicts.length}} conflicts found in allocation."
+            recipient_id: "{{action.result.person_manager_id}}"
+            related_person_id: "{{action.result.person_id}}"
+  
+  - id: rule_skill_mismatch_detected
+    name: "Skill Mismatch - Create Nudge"
+    description: "Alert when assigned person lacks required skills"
+    type: trigger
+    enabled: true
+    priority: 120
+    debounce_ms: 0
+    trigger_config:
+      event_type: action.completed
+      action_type: at_validate_skill_match
+    condition:
+      "==": [{ var: action.result.is_match }, false]
+    actions:
+      - type: create_object
+        config:
+          object_type: ot_nudge
+          data:
+            type: suggestion
+            severity: info
+            title: "Skill mismatch: {{action.result.task_title}}"
+            description: "{{action.result.person_name}} may need support - skill gap in {{action.result.missing_skills.join(', ')}}."
+            recipient_id: "{{action.result.pm_id}}"
+            related_task_id: "{{action.result.task_id}}"
+            related_person_id: "{{action.result.person_id}}"
+  
+  # ==========================================================================
+  # SPRINT LIFECYCLE TRIGGERS
+  # ==========================================================================
+  
+  - id: rule_sprint_started
+    name: "Sprint Started - Validation"
+    description: "Validate sprint commitments when sprint starts"
+    type: trigger
+    enabled: true
+    priority: 100
+    debounce_ms: 0
+    trigger_config:
+      event_type: object.updated
+      object_type: ot_sprint
+      watch_fields: [status]
+    condition:
+      and:
+        - "==": [{ var: object.data.status }, active]
+        - "!=": [{ var: changes.status.old }, active]
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_validate_sprint_commitments
+          parameters:
+            sprint_id: "{{object.id}}"
+      - type: invoke_action
+        config:
+          action_type: at_generate_sprint_nudges
+          parameters:
+            sprint_id: "{{object.id}}"
+  
+  - id: rule_sprint_overcommitted
+    name: "Sprint Overcommitted Alert"
+    description: "Warn when sprint is overcommitted (>85% capacity)"
+    type: trigger
+    enabled: true
+    priority: 110
+    debounce_ms: 0
+    trigger_config:
+      event_type: action.completed
+      action_type: at_validate_sprint_commitments
+    condition:
+      ">": [{ var: action.result.commitment_ratio }, 0.85]
+    actions:
+      - type: create_object
+        config:
+          object_type: ot_nudge
+          data:
+            type: risk
+            severity: warning
+            title: "Sprint overcommitted: {{action.result.sprint_name}}"
+            description: "Sprint is at {{action.result.commitment_ratio * 100}}% capacity. Consider removing lower priority tasks."
+            recipient_id: "{{action.result.pm_id}}"
+  
+  # ==========================================================================
+  # DEPENDENCY TRIGGERS
+  # ==========================================================================
+  
+  - id: rule_task_completed_unblocks
+    name: "Task Completed - Unblocks Dependencies"
+    description: "Update dependent tasks when prerequisite completes"
+    type: trigger
+    enabled: true
+    priority: 90
+    debounce_ms: 0
+    trigger_config:
+      event_type: object.updated
+      object_type: ot_task
+      watch_fields: [status]
+    condition:
+      and:
+        - "==": [{ var: object.data.status }, done]
+        - "!=": [{ var: changes.status.old }, done]
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_update_dependent_tasks
+          parameters:
+            completed_task_id: "{{object.id}}"
+  
+  # ==========================================================================
+  # PRODUCTIVITY TRIGGERS
+  # ==========================================================================
+  
+  - id: rule_task_completed_velocity
+    name: "Task Completed - Update Velocity"
+    description: "Update productivity metrics when task is completed"
+    type: trigger
+    enabled: true
+    priority: 50
+    debounce_ms: 0
+    trigger_config:
+      event_type: object.updated
+      object_type: ot_task
+      watch_fields: [status]
+    condition:
+      and:
+        - "==": [{ var: object.data.status }, done]
+        - "!=": [{ var: changes.status.old }, done]
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_update_task_velocity
+          parameters:
+            task_id: "{{object.id}}"
+
+# ============================================================================
+# SCHEDULED TRIGGERS (CRON JOBS)
+# These run on a schedule regardless of events
+# ============================================================================
+
+scheduled_triggers:
+  # ==========================================================================
+  # PRIORITY CALCULATION
+  # ==========================================================================
+  
+  - id: schedule_priority_recalculation
+    name: "Hourly Priority Recalculation"
+    description: "Recalculate priority scores for all active projects every hour"
+    type: schedule
+    enabled: true
+    trigger_config:
+      cron: "0 * * * *"  # At the start of every hour
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_recalculate_all_priorities
+          parameters:
+            scope: active_projects_only
+    
+  # ==========================================================================
+  # NUDGE GENERATION
+  # ==========================================================================
+  
+  - id: schedule_nudge_generation
+    name: "Nudge Generation"
+    description: "Generate AI nudges every 15 minutes"
+    type: schedule
+    enabled: true
+    trigger_config:
+      cron: "*/15 * * * *"  # Every 15 minutes
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_generate_nudges
+          parameters:
+            max_nudges: 50
+            severity_threshold: info
+  
+  - id: schedule_daily_digest
+    name: "Daily PM Digest"
+    description: "Generate daily digest for project managers"
+    type: schedule
+    enabled: true
+    trigger_config:
+      cron: "0 8 * * *"  # Daily at 8 AM
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_generate_daily_digest
+          parameters:
+            include_risks: true
+            include_opportunities: true
+            include_utilization: true
+  
+  # ==========================================================================
+  # VELOCITY & PRODUCTIVITY
+  # ==========================================================================
+  
+  - id: schedule_velocity_update
+    name: "Velocity Metrics Update"
+    description: "Update productivity profiles every 2 hours"
+    type: schedule
+    enabled: true
+    trigger_config:
+      cron: "0 */2 * * *"  # Every 2 hours
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_update_productivity_profiles
+          parameters:
+            min_sample_size: 5
+  
+  # ==========================================================================
+  # CONFLICT DETECTION
+  # ==========================================================================
+  
+  - id: schedule_conflict_detection
+    name: "Conflict Detection"
+    description: "Check for resource and scheduling conflicts every 30 minutes"
+    type: schedule
+    enabled: true
+    trigger_config:
+      cron: "*/30 * * * *"  # Every 30 minutes
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_detect_conflicts
+          parameters:
+            check_overallocation: true
+            check_skill_mismatch: true
+            check_sprint_overcommitment: true
+  
+  # ==========================================================================
+  # SPRINT HEALTH
+  # ==========================================================================
+  
+  - id: schedule_sprint_health_check
+    name: "Sprint Health Check"
+    description: "Check health of active sprints daily at 6 AM"
+    type: schedule
+    enabled: true
+    trigger_config:
+      cron: "0 6 * * *"  # Daily at 6 AM
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_check_sprint_health
+          parameters:
+            sprint_status: active
+  
+  # ==========================================================================
+  # BURNOUT PREVENTION
+  # ==========================================================================
+  
+  - id: schedule_burnout_check
+    name: "Weekly Burnout Check"
+    description: "Check for people at risk of burnout (overallocated for 4+ weeks)"
+    type: schedule
+    enabled: true
+    trigger_config:
+      cron: "0 9 * * 1"  # Mondays at 9 AM
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_check_burnout_risk
+          parameters:
+            high_allocation_threshold: 90
+            consecutive_weeks_threshold: 4
+  
+  # ==========================================================================
+  # REPORTING
+  # ==========================================================================
+  
+  - id: schedule_weekly_utilization_report
+    name: "Weekly Utilization Report"
+    description: "Generate weekly resource utilization report"
+    type: schedule
+    enabled: true
+    trigger_config:
+      cron: "0 9 * * 1"  # Mondays at 9 AM
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_generate_utilization_report
+          parameters:
+            period: last_week
+      - type: notify
+        config:
+          channels: [email]
+          template: weekly_utilization_report
+          targets: [resource_managers]
+  
+  - id: schedule_skill_gap_analysis
+    name: "Weekly Skill Gap Analysis"
+    description: "Analyze organization-wide skill gaps"
+    type: schedule
+    enabled: true
+    trigger_config:
+      cron: "0 10 * * 1"  # Mondays at 10 AM
+    actions:
+      - type: invoke_action
+        config:
+          action_type: at_identify_skill_gaps
+          parameters:
+            include_training_recommendations: true
+
+# ============================================================================
+# ACTION DEFINITIONS
+# These are custom actions that triggers can invoke
+# ============================================================================
+
+action_types:
+  # Task Management
+  - id: at_handle_task_status_change
+    name: "Handle Task Status Change"
+    description: "Update dependencies and metrics when task status changes"
+  
+  - id: at_update_dependent_tasks
+    name: "Update Dependent Tasks"
+    description: "Update status of tasks blocked by completed task"
+  
+  - id: at_update_task_velocity
+    name: "Update Task Velocity"
+    description: "Update productivity metrics when task completes"
+  
+  # Impact Analysis
+  - id: at_analyze_leave_impact
+    name: "Analyze Leave Impact"
+    description: "Calculate impact of person going on leave"
+  
+  - id: at_analyze_scope_change_impact
+    name: "Analyze Scope Change Impact"
+    description: "Calculate impact of project scope changes"
+  
+  # Assignment
+  - id: at_check_assignment_conflicts
+    name: "Check Assignment Conflicts"
+    description: "Check for resource conflicts in assignment"
+  
+  - id: at_validate_skill_match
+    name: "Validate Skill Match"
+    description: "Validate person has required skills for task"
+  
+  # Priority
+  - id: at_recalculate_project_priority
+    name: "Recalculate Project Priority"
+    description: "Recalculate priority for single project"
+  
+  - id: at_recalculate_all_priorities
+    name: "Recalculate All Priorities"
+    description: "Batch recalculation of all project priorities"
+  
+  # Sprint
+  - id: at_validate_sprint_commitments
+    name: "Validate Sprint Commitments"
+    description: "Validate sprint capacity vs commitments"
+  
+  - id: at_generate_sprint_nudges
+    name: "Generate Sprint Nudges"
+    description: "Generate nudges for new sprint"
+  
+  - id: at_check_sprint_health
+    name: "Check Sprint Health"
+    description: "Health check for active sprints"
+  
+  # Nudge Generation
+  - id: at_generate_nudges
+    name: "Generate Nudges"
+    description: "Main nudge generation entry point"
+  
+  - id: at_generate_daily_digest
+    name: "Generate Daily Digest"
+    description: "Generate daily PM digest"
+  
+  - id: at_check_overdue_tasks
+    name: "Check Overdue Tasks"
+    description: "Find and alert on overdue tasks"
+  
+  # Conflict Detection
+  - id: at_detect_conflicts
+    name: "Detect Conflicts"
+    description: "Detect resource and scheduling conflicts"
+  
+  - id: at_check_burnout_risk
+    name: "Check Burnout Risk"
+    description: "Check for people at risk of burnout"
+  
+  # Productivity
+  - id: at_update_productivity_profiles
+    name: "Update Productivity Profiles"
+    description: "Update velocity and accuracy metrics"
+  
+  # Skills
+  - id: at_identify_skill_gaps
+    name: "Identify Skill Gaps"
+    description: "Analyze organization-wide skill gaps"
+  
+  # Reporting
+  - id: at_generate_utilization_report
+    name: "Generate Utilization Report"
+    description: "Generate resource utilization report"
+
+# ============================================================================
+# NOTIFICATION TEMPLATES
+# ============================================================================
+
+notification_templates:
+  - id: critical_task_created
+    name: "Critical Task Created"
+    subject: "Critical Task: {{task.title}}"
+    body: |
+      A critical priority task has been created:
+      
+      Task: {{task.title}}
+      Project: {{project.name}}
+      Due: {{task.due_date}}
+      
+      Please review immediately.
+  
+  - id: leave_approved_with_impact
+    name: "Leave Approved with Impact"
+    subject: "Leave Approved - Impact Analysis Available"
+    body: |
+      Your leave request has been approved.
+      
+      Impact analysis has identified {{impact.affected_tasks_count}} tasks that may be affected.
+      
+      View full analysis: {{impact.report_url}}
+  
+  - id: project_scope_changed
+    name: "Project Scope Changed"
+    subject: "Project Scope Updated: {{project.name}}"
+    body: |
+      Project scope has been updated.
+      
+      Impact: {{impact.summary}}
+      New end date: {{project.planned_end}}
+      
+      Review details in the dashboard.
+  
+  - id: weekly_utilization_report
+    name: "Weekly Utilization Report"
+    subject: "Weekly Resource Utilization Report"
+    body: |
+      Weekly utilization report is ready.
+      
+      Average utilization: {{report.avg_utilization}}%
+      Overallocated: {{report.overallocated_count}} people
+      Underutilized: {{report.underutilized_count}} people
+      
+      View full report: {{report.url}}
