@@ -4,6 +4,10 @@ import {
     Search,
     MessageSquare,
     Network,
+    Workflow,
+    CheckCircle,
+    Share2,
+    History,
     Settings
 } from "lucide-react";
 
@@ -12,6 +16,10 @@ const navItems = [
     { name: "Object Explorer", href: "/objects", icon: Search },
     { name: "Agent Chat", href: "/chat", icon: MessageSquare },
     { name: "Rules", href: "/rules", icon: Network },
+    { name: "Workflows", href: "/workflows", icon: Workflow },
+    { name: "Approvals", href: "/approvals", icon: CheckCircle },
+    { name: "Graph", href: "/graph", icon: Share2 },
+    { name: "Decision Traces", href: "/traces", icon: History },
     { name: "Settings", href: "/settings", icon: Settings },
 ];
 

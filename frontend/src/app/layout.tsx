@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/sidebar";
+import { NotificationProvider } from "@/lib/notifications";
+import { NotificationCenter } from "@/components/notifications/notification-center";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,12 +30,20 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="flex h-screen overflow-hidden">
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto bg-background">
-            {children}
-          </main>
-        </div>
+        <NotificationProvider>
+          <div className="flex h-screen overflow-hidden">
+            <Sidebar />
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <header className="h-14 border-b flex items-center justify-between px-6 bg-background">
+                <h2 className="text-lg font-semibold">OrgMind</h2>
+                <NotificationCenter />
+              </header>
+              <main className="flex-1 overflow-y-auto bg-background">
+                {children}
+              </main>
+            </div>
+          </div>
+        </NotificationProvider>
       </body>
     </html>
   );
